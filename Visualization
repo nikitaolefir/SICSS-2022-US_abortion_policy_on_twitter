@@ -1,0 +1,4945 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "c7ebca3a",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import sys\n",
+    "import wbgapi as wb\n",
+    "import pandas as pd\n",
+    "import matplotlib.pyplot as plt\n",
+    "from scipy import stats"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 73,
+   "id": "13c402f7",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "variable_name = pd.read_csv(\"https://raw.githubusercontent.com/faschmar/SICSS-2022-aag-no15_filter_bubble_effect/65ca3346eddfb176bc692b318f8062d7df106c19/results/tweets_senators_sentiment_merged_2022-07-27.csv\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 74,
+   "id": "06552077",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "df = variable_name[[\"Name\",\"Party\",\"State\",\"Twitter\",\"id\",\"vader_sentiment_score\",\"vader_sentiment_phrase\"]]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 75,
+   "id": "366e0cf8",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 76,
+   "id": "cbe195ae",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Name</th>\n",
+       "      <th>Party</th>\n",
+       "      <th>State</th>\n",
+       "      <th>Twitter</th>\n",
+       "      <th>id</th>\n",
+       "      <th>vader_sentiment_score</th>\n",
+       "      <th>vader_sentiment_phrase</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Bennet, Michael F.</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>CO</td>\n",
+       "      <td>senatorbennet</td>\n",
+       "      <td>1550838139203096578</td>\n",
+       "      <td>-0.6486</td>\n",
+       "      <td>negative</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                 Name     Party State        Twitter                   id  \\\n",
+       "0  Bennet, Michael F.  Democrat    CO  senatorbennet  1550838139203096578   \n",
+       "\n",
+       "   vader_sentiment_score vader_sentiment_phrase  \n",
+       "0                -0.6486               negative  "
+      ]
+     },
+     "execution_count": 76,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df.head(1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 77,
+   "id": "34e1dc47",
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Name</th>\n",
+       "      <th>Party</th>\n",
+       "      <th>State</th>\n",
+       "      <th>Twitter</th>\n",
+       "      <th>id</th>\n",
+       "      <th>vader_sentiment_score</th>\n",
+       "      <th>vader_sentiment_phrase</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Bennet, Michael F.</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>CO</td>\n",
+       "      <td>senatorbennet</td>\n",
+       "      <td>1550838139203096578</td>\n",
+       "      <td>-0.6486</td>\n",
+       "      <td>negative</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>Bennet, Michael F.</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>CO</td>\n",
+       "      <td>senatorbennet</td>\n",
+       "      <td>1550128595489591306</td>\n",
+       "      <td>0.8591</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Bennet, Michael F.</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>CO</td>\n",
+       "      <td>senatorbennet</td>\n",
+       "      <td>1547637767353483267</td>\n",
+       "      <td>0.9412</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>Bennet, Michael F.</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>CO</td>\n",
+       "      <td>senatorbennet</td>\n",
+       "      <td>1547596463424692224</td>\n",
+       "      <td>0.8910</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>Bennet, Michael F.</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>CO</td>\n",
+       "      <td>senatorbennet</td>\n",
+       "      <td>1547233251663781889</td>\n",
+       "      <td>0.8442</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1326</th>\n",
+       "      <td>Sinema, Kyrsten</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>AZ</td>\n",
+       "      <td>senatorsinema</td>\n",
+       "      <td>1540345948626354176</td>\n",
+       "      <td>0.4939</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1327</th>\n",
+       "      <td>Shelby, Richard C.</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>AL</td>\n",
+       "      <td>senshelby</td>\n",
+       "      <td>1540345240137060352</td>\n",
+       "      <td>0.8910</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1328</th>\n",
+       "      <td>Thune, John</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>SD</td>\n",
+       "      <td>senjohnthune</td>\n",
+       "      <td>1540342798947328002</td>\n",
+       "      <td>0.7351</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1329</th>\n",
+       "      <td>Toomey, Patrick J.</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>PA</td>\n",
+       "      <td>sentoomey</td>\n",
+       "      <td>1540341655437561858</td>\n",
+       "      <td>0.5859</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1330</th>\n",
+       "      <td>Toomey, Patrick J.</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>PA</td>\n",
+       "      <td>sentoomey</td>\n",
+       "      <td>1540341653604556800</td>\n",
+       "      <td>0.7964</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>1331 rows × 7 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                    Name       Party State        Twitter  \\\n",
+       "0     Bennet, Michael F.    Democrat    CO  senatorbennet   \n",
+       "1     Bennet, Michael F.    Democrat    CO  senatorbennet   \n",
+       "2     Bennet, Michael F.    Democrat    CO  senatorbennet   \n",
+       "3     Bennet, Michael F.    Democrat    CO  senatorbennet   \n",
+       "4     Bennet, Michael F.    Democrat    CO  senatorbennet   \n",
+       "...                  ...         ...   ...            ...   \n",
+       "1326     Sinema, Kyrsten    Democrat    AZ  senatorsinema   \n",
+       "1327  Shelby, Richard C.  Republican    AL      senshelby   \n",
+       "1328         Thune, John  Republican    SD   senjohnthune   \n",
+       "1329  Toomey, Patrick J.  Republican    PA      sentoomey   \n",
+       "1330  Toomey, Patrick J.  Republican    PA      sentoomey   \n",
+       "\n",
+       "                       id  vader_sentiment_score vader_sentiment_phrase  \n",
+       "0     1550838139203096578                -0.6486               negative  \n",
+       "1     1550128595489591306                 0.8591               positive  \n",
+       "2     1547637767353483267                 0.9412               positive  \n",
+       "3     1547596463424692224                 0.8910               positive  \n",
+       "4     1547233251663781889                 0.8442               positive  \n",
+       "...                   ...                    ...                    ...  \n",
+       "1326  1540345948626354176                 0.4939               positive  \n",
+       "1327  1540345240137060352                 0.8910               positive  \n",
+       "1328  1540342798947328002                 0.7351               positive  \n",
+       "1329  1540341655437561858                 0.5859               positive  \n",
+       "1330  1540341653604556800                 0.7964               positive  \n",
+       "\n",
+       "[1331 rows x 7 columns]"
+      ]
+     },
+     "execution_count": 77,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 78,
+   "id": "84676850",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "x=df.groupby('State', as_index=False).max()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 79,
+   "id": "b1cc8974",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>State</th>\n",
+       "      <th>Name</th>\n",
+       "      <th>Party</th>\n",
+       "      <th>Twitter</th>\n",
+       "      <th>id</th>\n",
+       "      <th>vader_sentiment_score</th>\n",
+       "      <th>vader_sentiment_phrase</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>AK</td>\n",
+       "      <td>Murkowski, Lisa</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>lisamurkowski</td>\n",
+       "      <td>1548074843131629573</td>\n",
+       "      <td>0.8893</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>AL</td>\n",
+       "      <td>Tuberville, Tommy</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>sentuberville</td>\n",
+       "      <td>1547644099687108608</td>\n",
+       "      <td>0.8910</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>AR</td>\n",
+       "      <td>Cotton, Tom</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>sentomcotton</td>\n",
+       "      <td>1546897767771115520</td>\n",
+       "      <td>0.6724</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>AZ</td>\n",
+       "      <td>Sinema, Kyrsten</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>senmarkkelly</td>\n",
+       "      <td>1540424880088391681</td>\n",
+       "      <td>0.4939</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>CA</td>\n",
+       "      <td>Padilla, Alex</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>senfeinstein</td>\n",
+       "      <td>1550497216124649473</td>\n",
+       "      <td>0.9678</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5</th>\n",
+       "      <td>CO</td>\n",
+       "      <td>Hickenlooper, John W.</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>senatorhick</td>\n",
+       "      <td>1550838139203096578</td>\n",
+       "      <td>0.9531</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6</th>\n",
+       "      <td>CT</td>\n",
+       "      <td>Murphy, Christopher</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>senblumenthal</td>\n",
+       "      <td>1550619807615172615</td>\n",
+       "      <td>0.9217</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>7</th>\n",
+       "      <td>DE</td>\n",
+       "      <td>Coons, Christopher A.</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>senatorcarper</td>\n",
+       "      <td>1547981936479518720</td>\n",
+       "      <td>0.9325</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>8</th>\n",
+       "      <td>FL</td>\n",
+       "      <td>Scott, Rick</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>senrickscott</td>\n",
+       "      <td>1550070633664487424</td>\n",
+       "      <td>0.9603</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>9</th>\n",
+       "      <td>GA</td>\n",
+       "      <td>Warnock, Raphael G.</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>senatorwarnock</td>\n",
+       "      <td>1549433383192711168</td>\n",
+       "      <td>0.8271</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>10</th>\n",
+       "      <td>HI</td>\n",
+       "      <td>Hirono, Mazie K.</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>maziehirono</td>\n",
+       "      <td>1550199024543842304</td>\n",
+       "      <td>0.9747</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>11</th>\n",
+       "      <td>IA</td>\n",
+       "      <td>Grassley, Chuck</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>senjoniernst</td>\n",
+       "      <td>1550270874032521217</td>\n",
+       "      <td>0.9287</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>12</th>\n",
+       "      <td>ID</td>\n",
+       "      <td>Risch, James E.</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>senatorrisch</td>\n",
+       "      <td>1540357378910130177</td>\n",
+       "      <td>0.5574</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>13</th>\n",
+       "      <td>IL</td>\n",
+       "      <td>Durbin, Richard J.</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>senduckworth</td>\n",
+       "      <td>1550507764312580096</td>\n",
+       "      <td>0.9642</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>14</th>\n",
+       "      <td>IN</td>\n",
+       "      <td>Young, Todd</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>sentoddyoung</td>\n",
+       "      <td>1547302414046445570</td>\n",
+       "      <td>0.8360</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>15</th>\n",
+       "      <td>KS</td>\n",
+       "      <td>Moran, Jerry</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>jerrymoran</td>\n",
+       "      <td>1546577530286637057</td>\n",
+       "      <td>0.7003</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>16</th>\n",
+       "      <td>KY</td>\n",
+       "      <td>Paul, Rand</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>randpaul</td>\n",
+       "      <td>1550874801153216513</td>\n",
+       "      <td>0.6360</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>17</th>\n",
+       "      <td>LA</td>\n",
+       "      <td>Kennedy, John</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>senjohnkennedy</td>\n",
+       "      <td>1550167936610045956</td>\n",
+       "      <td>0.6124</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>18</th>\n",
+       "      <td>MA</td>\n",
+       "      <td>Warren, Elizabeth</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>senwarren</td>\n",
+       "      <td>1550212130737197057</td>\n",
+       "      <td>0.9468</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>19</th>\n",
+       "      <td>MD</td>\n",
+       "      <td>Van Hollen, Chris</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>senatorcardin</td>\n",
+       "      <td>1550605883561885697</td>\n",
+       "      <td>0.9565</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>20</th>\n",
+       "      <td>ME</td>\n",
+       "      <td>King, Angus S. Jr.</td>\n",
+       "      <td>Independent</td>\n",
+       "      <td>senangusking</td>\n",
+       "      <td>1540342847613845505</td>\n",
+       "      <td>0.0900</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>21</th>\n",
+       "      <td>MI</td>\n",
+       "      <td>Stabenow, Debbie</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>senstabenow</td>\n",
+       "      <td>1550226048520015872</td>\n",
+       "      <td>0.9638</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>22</th>\n",
+       "      <td>MN</td>\n",
+       "      <td>Smith, Tina</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>sentinasmith</td>\n",
+       "      <td>1550157515555590145</td>\n",
+       "      <td>0.9423</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>23</th>\n",
+       "      <td>MO</td>\n",
+       "      <td>Hawley, Josh</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>hawleymo</td>\n",
+       "      <td>1549407366914916352</td>\n",
+       "      <td>0.6249</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>24</th>\n",
+       "      <td>MS</td>\n",
+       "      <td>Wicker, Roger F.</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>senhydesmith</td>\n",
+       "      <td>1550107072221614084</td>\n",
+       "      <td>0.9296</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>25</th>\n",
+       "      <td>MT</td>\n",
+       "      <td>Daines, Steve</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>stevedaines</td>\n",
+       "      <td>1542246792972099591</td>\n",
+       "      <td>0.7269</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>26</th>\n",
+       "      <td>NC</td>\n",
+       "      <td>Tillis, Thom</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>senthomtillis</td>\n",
+       "      <td>1550132331561762817</td>\n",
+       "      <td>-0.4404</td>\n",
+       "      <td>negative</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>27</th>\n",
+       "      <td>ND</td>\n",
+       "      <td>Hoeven, John</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>senkevincramer</td>\n",
+       "      <td>1550548569672847361</td>\n",
+       "      <td>0.8720</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>28</th>\n",
+       "      <td>NH</td>\n",
+       "      <td>Shaheen, Jeanne</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>senatorshaheen</td>\n",
+       "      <td>1550526084780900354</td>\n",
+       "      <td>0.9648</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>29</th>\n",
+       "      <td>NJ</td>\n",
+       "      <td>Menendez, Bob</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>senatormenendez</td>\n",
+       "      <td>1549404363378102277</td>\n",
+       "      <td>0.9217</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>30</th>\n",
+       "      <td>NM</td>\n",
+       "      <td>Luján, Ben Ray</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>senatorlujan</td>\n",
+       "      <td>1550580508047941633</td>\n",
+       "      <td>0.9590</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>31</th>\n",
+       "      <td>NV</td>\n",
+       "      <td>Rosen, Jacky</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>senjackyrosen</td>\n",
+       "      <td>1550262093592645639</td>\n",
+       "      <td>0.9260</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>32</th>\n",
+       "      <td>NY</td>\n",
+       "      <td>Schumer, Charles E.</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>senschumer</td>\n",
+       "      <td>1549543855766355969</td>\n",
+       "      <td>0.8360</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>33</th>\n",
+       "      <td>OK</td>\n",
+       "      <td>Lankford, James</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>senatorlankford</td>\n",
+       "      <td>1548034671103066112</td>\n",
+       "      <td>0.7845</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>34</th>\n",
+       "      <td>OR</td>\n",
+       "      <td>Wyden, Ron</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>senjeffmerkley</td>\n",
+       "      <td>1550159031775412232</td>\n",
+       "      <td>0.9413</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>35</th>\n",
+       "      <td>PA</td>\n",
+       "      <td>Toomey, Patrick J.</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>sentoomey</td>\n",
+       "      <td>1540341655437561858</td>\n",
+       "      <td>0.7964</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>36</th>\n",
+       "      <td>RI</td>\n",
+       "      <td>Whitehouse, Sheldon</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>senwhitehouse</td>\n",
+       "      <td>1548815366306074626</td>\n",
+       "      <td>0.9480</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>37</th>\n",
+       "      <td>SC</td>\n",
+       "      <td>Scott, Tim</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>senatortimscott</td>\n",
+       "      <td>1550517789760180224</td>\n",
+       "      <td>0.9468</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>38</th>\n",
+       "      <td>SD</td>\n",
+       "      <td>Thune, John</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>senjohnthune</td>\n",
+       "      <td>1540342798947328002</td>\n",
+       "      <td>0.7351</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>39</th>\n",
+       "      <td>TN</td>\n",
+       "      <td>Hagerty, Bill</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>senatorhagerty</td>\n",
+       "      <td>1547672055092350980</td>\n",
+       "      <td>0.9442</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>40</th>\n",
+       "      <td>TX</td>\n",
+       "      <td>Cruz, Ted</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>sentedcruz</td>\n",
+       "      <td>1547224986389254152</td>\n",
+       "      <td>0.8481</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>41</th>\n",
+       "      <td>UT</td>\n",
+       "      <td>Romney, Mitt</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>senmikelee</td>\n",
+       "      <td>1546968706965716994</td>\n",
+       "      <td>0.7351</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>42</th>\n",
+       "      <td>VA</td>\n",
+       "      <td>Warner, Mark R.</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>timkaine</td>\n",
+       "      <td>1550585977734893568</td>\n",
+       "      <td>0.9136</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>43</th>\n",
+       "      <td>VT</td>\n",
+       "      <td>Sanders, Bernard</td>\n",
+       "      <td>Independent</td>\n",
+       "      <td>sensanders</td>\n",
+       "      <td>1550583130502881280</td>\n",
+       "      <td>0.9575</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>44</th>\n",
+       "      <td>WA</td>\n",
+       "      <td>Murray, Patty</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>senatorcantwell</td>\n",
+       "      <td>1550578955484274689</td>\n",
+       "      <td>0.9382</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>45</th>\n",
+       "      <td>WI</td>\n",
+       "      <td>Johnson, Ron</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>senronjohnson</td>\n",
+       "      <td>1549413640608124929</td>\n",
+       "      <td>0.9287</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>46</th>\n",
+       "      <td>WV</td>\n",
+       "      <td>Manchin, Joe</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>sen_joemanchin</td>\n",
+       "      <td>1540349633683230720</td>\n",
+       "      <td>0.7506</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>47</th>\n",
+       "      <td>WY</td>\n",
+       "      <td>Lummis, Cynthia M.</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>senlummis</td>\n",
+       "      <td>1540338413055881216</td>\n",
+       "      <td>0.8720</td>\n",
+       "      <td>positive</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   State                   Name        Party          Twitter  \\\n",
+       "0     AK        Murkowski, Lisa   Republican    lisamurkowski   \n",
+       "1     AL      Tuberville, Tommy   Republican    sentuberville   \n",
+       "2     AR            Cotton, Tom   Republican     sentomcotton   \n",
+       "3     AZ        Sinema, Kyrsten     Democrat     senmarkkelly   \n",
+       "4     CA          Padilla, Alex     Democrat     senfeinstein   \n",
+       "5     CO  Hickenlooper, John W.     Democrat      senatorhick   \n",
+       "6     CT    Murphy, Christopher     Democrat    senblumenthal   \n",
+       "7     DE  Coons, Christopher A.     Democrat    senatorcarper   \n",
+       "8     FL            Scott, Rick   Republican     senrickscott   \n",
+       "9     GA    Warnock, Raphael G.     Democrat   senatorwarnock   \n",
+       "10    HI       Hirono, Mazie K.     Democrat      maziehirono   \n",
+       "11    IA        Grassley, Chuck   Republican     senjoniernst   \n",
+       "12    ID        Risch, James E.   Republican     senatorrisch   \n",
+       "13    IL     Durbin, Richard J.     Democrat     senduckworth   \n",
+       "14    IN            Young, Todd   Republican     sentoddyoung   \n",
+       "15    KS           Moran, Jerry   Republican       jerrymoran   \n",
+       "16    KY             Paul, Rand   Republican         randpaul   \n",
+       "17    LA          Kennedy, John   Republican   senjohnkennedy   \n",
+       "18    MA      Warren, Elizabeth     Democrat        senwarren   \n",
+       "19    MD      Van Hollen, Chris     Democrat    senatorcardin   \n",
+       "20    ME     King, Angus S. Jr.  Independent     senangusking   \n",
+       "21    MI       Stabenow, Debbie     Democrat      senstabenow   \n",
+       "22    MN            Smith, Tina     Democrat     sentinasmith   \n",
+       "23    MO           Hawley, Josh   Republican         hawleymo   \n",
+       "24    MS       Wicker, Roger F.   Republican     senhydesmith   \n",
+       "25    MT          Daines, Steve   Republican      stevedaines   \n",
+       "26    NC           Tillis, Thom   Republican    senthomtillis   \n",
+       "27    ND           Hoeven, John   Republican   senkevincramer   \n",
+       "28    NH        Shaheen, Jeanne     Democrat   senatorshaheen   \n",
+       "29    NJ          Menendez, Bob     Democrat  senatormenendez   \n",
+       "30    NM         Luján, Ben Ray     Democrat     senatorlujan   \n",
+       "31    NV           Rosen, Jacky     Democrat    senjackyrosen   \n",
+       "32    NY    Schumer, Charles E.     Democrat       senschumer   \n",
+       "33    OK        Lankford, James   Republican  senatorlankford   \n",
+       "34    OR             Wyden, Ron     Democrat   senjeffmerkley   \n",
+       "35    PA     Toomey, Patrick J.   Republican        sentoomey   \n",
+       "36    RI    Whitehouse, Sheldon     Democrat    senwhitehouse   \n",
+       "37    SC             Scott, Tim   Republican  senatortimscott   \n",
+       "38    SD            Thune, John   Republican     senjohnthune   \n",
+       "39    TN          Hagerty, Bill   Republican   senatorhagerty   \n",
+       "40    TX              Cruz, Ted   Republican       sentedcruz   \n",
+       "41    UT           Romney, Mitt   Republican       senmikelee   \n",
+       "42    VA        Warner, Mark R.     Democrat         timkaine   \n",
+       "43    VT       Sanders, Bernard  Independent       sensanders   \n",
+       "44    WA          Murray, Patty     Democrat  senatorcantwell   \n",
+       "45    WI           Johnson, Ron   Republican    senronjohnson   \n",
+       "46    WV           Manchin, Joe     Democrat   sen_joemanchin   \n",
+       "47    WY     Lummis, Cynthia M.   Republican        senlummis   \n",
+       "\n",
+       "                     id  vader_sentiment_score vader_sentiment_phrase  \n",
+       "0   1548074843131629573                 0.8893               positive  \n",
+       "1   1547644099687108608                 0.8910               positive  \n",
+       "2   1546897767771115520                 0.6724               positive  \n",
+       "3   1540424880088391681                 0.4939               positive  \n",
+       "4   1550497216124649473                 0.9678               positive  \n",
+       "5   1550838139203096578                 0.9531               positive  \n",
+       "6   1550619807615172615                 0.9217               positive  \n",
+       "7   1547981936479518720                 0.9325               positive  \n",
+       "8   1550070633664487424                 0.9603               positive  \n",
+       "9   1549433383192711168                 0.8271               positive  \n",
+       "10  1550199024543842304                 0.9747               positive  \n",
+       "11  1550270874032521217                 0.9287               positive  \n",
+       "12  1540357378910130177                 0.5574               positive  \n",
+       "13  1550507764312580096                 0.9642               positive  \n",
+       "14  1547302414046445570                 0.8360               positive  \n",
+       "15  1546577530286637057                 0.7003               positive  \n",
+       "16  1550874801153216513                 0.6360               positive  \n",
+       "17  1550167936610045956                 0.6124               positive  \n",
+       "18  1550212130737197057                 0.9468               positive  \n",
+       "19  1550605883561885697                 0.9565               positive  \n",
+       "20  1540342847613845505                 0.0900               positive  \n",
+       "21  1550226048520015872                 0.9638               positive  \n",
+       "22  1550157515555590145                 0.9423               positive  \n",
+       "23  1549407366914916352                 0.6249               positive  \n",
+       "24  1550107072221614084                 0.9296               positive  \n",
+       "25  1542246792972099591                 0.7269               positive  \n",
+       "26  1550132331561762817                -0.4404               negative  \n",
+       "27  1550548569672847361                 0.8720               positive  \n",
+       "28  1550526084780900354                 0.9648               positive  \n",
+       "29  1549404363378102277                 0.9217               positive  \n",
+       "30  1550580508047941633                 0.9590               positive  \n",
+       "31  1550262093592645639                 0.9260               positive  \n",
+       "32  1549543855766355969                 0.8360               positive  \n",
+       "33  1548034671103066112                 0.7845               positive  \n",
+       "34  1550159031775412232                 0.9413               positive  \n",
+       "35  1540341655437561858                 0.7964               positive  \n",
+       "36  1548815366306074626                 0.9480               positive  \n",
+       "37  1550517789760180224                 0.9468               positive  \n",
+       "38  1540342798947328002                 0.7351               positive  \n",
+       "39  1547672055092350980                 0.9442               positive  \n",
+       "40  1547224986389254152                 0.8481               positive  \n",
+       "41  1546968706965716994                 0.7351               positive  \n",
+       "42  1550585977734893568                 0.9136               positive  \n",
+       "43  1550583130502881280                 0.9575               positive  \n",
+       "44  1550578955484274689                 0.9382               positive  \n",
+       "45  1549413640608124929                 0.9287               positive  \n",
+       "46  1540349633683230720                 0.7506               positive  \n",
+       "47  1540338413055881216                 0.8720               positive  "
+      ]
+     },
+     "execution_count": 79,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "x"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 80,
+   "id": "a5423352",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def Average(l): \n",
+    "    avg = sum(l) / len(l) \n",
+    "    return avg"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 81,
+   "id": "62712e49",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Arizona=df.loc[(df[\"State\"] == \"AZ\")]\n",
+    "Arizona\n",
+    "average_Arizona = Average(Arizona[\"vader_sentiment_score\"])\n",
+    "Alabama=df.loc[(df[\"State\"] == \"AL\")]\n",
+    "average_Alabama = Average(Alabama[\"vader_sentiment_score\"])\n",
+    "Alaska=df.loc[(df[\"State\"] == \"AK\")]\n",
+    "average_Alaska = Average(Alaska[\"vader_sentiment_score\"]) \n",
+    "Arkansas=df.loc[(df[\"State\"] == \"AR\")]\n",
+    "average_Arkansas = Average(Arkansas[\"vader_sentiment_score\"]) \n",
+    "California=df.loc[(df[\"State\"] == \"CA\")]\n",
+    "average_California = Average(California[\"vader_sentiment_score\"]) \n",
+    "Colorado=df.loc[(df[\"State\"] == \"CO\")]\n",
+    "average_Colorado = Average(Colorado[\"vader_sentiment_score\"]) \n",
+    "Connecticut=df.loc[(df[\"State\"] == \"CT\")]\n",
+    "average_Connecticut = Average(Connecticut[\"vader_sentiment_score\"]) \n",
+    "Delawere=df.loc[(df[\"State\"] == \"DE\")]\n",
+    "average_Delawere = Average(Delawere[\"vader_sentiment_score\"]) \n",
+    "Florida=df.loc[(df[\"State\"] == \"FL\")]\n",
+    "average_Florida = Average(Florida[\"vader_sentiment_score\"]) \n",
+    "Georgia=df.loc[(df[\"State\"] == \"GA\")]\n",
+    "average_Georgia = Average(Georgia[\"vader_sentiment_score\"]) \n",
+    "Hawaii=df.loc[(df[\"State\"] == \"HI\")]\n",
+    "average_Hawaii = Average(Hawaii[\"vader_sentiment_score\"]) \n",
+    "Idaho=df.loc[(df[\"State\"] == \"ID\")]\n",
+    "average_Idaho = Average(Idaho[\"vader_sentiment_score\"]) \n",
+    "Illinois=df.loc[(df[\"State\"] == \"IL\")]\n",
+    "average_Illinois = Average(Illinois[\"vader_sentiment_score\"]) \n",
+    "Indiana=df.loc[(df[\"State\"] == \"IN\")]\n",
+    "average_Indiana = Average(Indiana[\"vader_sentiment_score\"]) \n",
+    "Iowa=df.loc[(df[\"State\"] == \"IA\")]\n",
+    "average_Iowa = Average(Iowa[\"vader_sentiment_score\"])\n",
+    "Kansas=df.loc[(df[\"State\"] == \"KS\")]\n",
+    "average_Kansas = Average(Kansas[\"vader_sentiment_score\"]) \n",
+    "Kentucky=df.loc[(df[\"State\"] == \"KY\")]\n",
+    "average_Kentucky = Average(Kentucky[\"vader_sentiment_score\"]) \n",
+    "Louisiana=df.loc[(df[\"State\"] == \"LA\")]\n",
+    "average_Louisiana = Average(Louisiana[\"vader_sentiment_score\"]) \n",
+    "Maine=df.loc[(df[\"State\"] == \"ME\")]\n",
+    "average_Maine = Average(Maine[\"vader_sentiment_score\"]) \n",
+    "Maryland=df.loc[(df[\"State\"] == \"MD\")]\n",
+    "average_Maryland = Average(Maryland[\"vader_sentiment_score\"])\n",
+    "Massachusetts=df.loc[(df[\"State\"] == \"MA\")]\n",
+    "average_Massachusetts = Average(Massachusetts[\"vader_sentiment_score\"]) \n",
+    "Michigan=df.loc[(df[\"State\"] == \"MI\")]\n",
+    "average_Michigan = Average(Michigan[\"vader_sentiment_score\"]) \n",
+    "Minnesota=df.loc[(df[\"State\"] == \"MN\")]\n",
+    "average_Minnesota = Average(Minnesota[\"vader_sentiment_score\"]) \n",
+    "Mississippi=df.loc[(df[\"State\"] == \"MS\")]\n",
+    "average_Mississippi = Average(Mississippi[\"vader_sentiment_score\"]) \n",
+    "Missouri=df.loc[(df[\"State\"] == \"MO\")]\n",
+    "average_Missouri = Average(Missouri[\"vader_sentiment_score\"]) \n",
+    "Montanta=df.loc[(df[\"State\"] == \"MT\")]\n",
+    "average_Montanta = Average(Montanta[\"vader_sentiment_score\"])\n",
+    "Nevada=df.loc[(df[\"State\"] == \"NV\")]\n",
+    "average_Nevada = Average(Nevada[\"vader_sentiment_score\"])\n",
+    "NewHamphire=df.loc[(df[\"State\"] == \"NH\")]\n",
+    "average_NewHamphire = Average(NewHamphire[\"vader_sentiment_score\"]) \n",
+    "NewJersey=df.loc[(df[\"State\"] == \"NJ\")]\n",
+    "average_NewJersey = Average(NewJersey[\"vader_sentiment_score\"]) \n",
+    "NewMexico=df.loc[(df[\"State\"] == \"NM\")]\n",
+    "average_NewMexico = Average(NewMexico[\"vader_sentiment_score\"]) \n",
+    "NewYork=df.loc[(df[\"State\"] == \"NY\")]\n",
+    "average_NewYork = Average(NewYork[\"vader_sentiment_score\"]) \n",
+    "NorthCarolina=df.loc[(df[\"State\"] == \"NC\")]\n",
+    "average_NorthCarolina = Average(NorthCarolina[\"vader_sentiment_score\"])\n",
+    "NorthDakota=df.loc[(df[\"State\"] == \"ND\")]\n",
+    "average_NorthDakota = Average(NorthDakota[\"vader_sentiment_score\"]) \n",
+    "Oklahoma=df.loc[(df[\"State\"] == \"OK\")]\n",
+    "average_Oklahoma = Average(Oklahoma[\"vader_sentiment_score\"]) \n",
+    "Oregon=df.loc[(df[\"State\"] == \"OR\")]\n",
+    "average_Oregon = Average(Oregon[\"vader_sentiment_score\"]) \n",
+    "Pennsylvania=df.loc[(df[\"State\"] == \"PA\")]\n",
+    "average_Pennsylvania = Average(Pennsylvania[\"vader_sentiment_score\"]) \n",
+    "RhodeIsland=df.loc[(df[\"State\"] == \"RI\")]\n",
+    "average_RhodeIsland = Average(RhodeIsland[\"vader_sentiment_score\"]) \n",
+    "SouthCarolina=df.loc[(df[\"State\"] == \"SC\")]\n",
+    "average_SouthCarolina = Average(SouthCarolina[\"vader_sentiment_score\"])\n",
+    "SouthDakota=df.loc[(df[\"State\"] == \"SD\")]\n",
+    "average_SouthDakota = Average(SouthDakota[\"vader_sentiment_score\"]) \n",
+    "Tennesse=df.loc[(df[\"State\"] == \"TN\")]\n",
+    "average_Tennesse = Average(Tennesse[\"vader_sentiment_score\"]) \n",
+    "Texas=df.loc[(df[\"State\"] == \"TX\")]\n",
+    "average_Texas = Average(Texas[\"vader_sentiment_score\"]) \n",
+    "Utah=df.loc[(df[\"State\"] == \"UT\")]\n",
+    "average_Utah = Average(Utah[\"vader_sentiment_score\"]) \n",
+    "Vermont=df.loc[(df[\"State\"] == \"VT\")]\n",
+    "average_Vermont = Average(Vermont[\"vader_sentiment_score\"]) \n",
+    "Virginia=df.loc[(df[\"State\"] == \"VA\")]\n",
+    "average_Virginia = Average(Virginia[\"vader_sentiment_score\"]) \n",
+    "Washington=df.loc[(df[\"State\"] == \"WA\")]\n",
+    "average_Washington = Average(Washington[\"vader_sentiment_score\"]) \n",
+    "WestVirginia=df.loc[(df[\"State\"] == \"WV\")]\n",
+    "average_WestVirginia = Average(WestVirginia[\"vader_sentiment_score\"])\n",
+    "Wisconsin=df.loc[(df[\"State\"] == \"WI\")]\n",
+    "average_Wisconsin = Average(Wisconsin[\"vader_sentiment_score\"]) \n",
+    "Wyoming=df.loc[(df[\"State\"] == \"WY\")]\n",
+    "average_Wyoming = Average(Wyoming[\"vader_sentiment_score\"]) "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 82,
+   "id": "fcdacd76",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "scores = x[[\"State\",\"vader_sentiment_score\"]]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 83,
+   "id": "4f8da59d",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>State</th>\n",
+       "      <th>vader_sentiment_score</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>AK</td>\n",
+       "      <td>0.8893</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>AL</td>\n",
+       "      <td>0.8910</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>AR</td>\n",
+       "      <td>0.6724</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>AZ</td>\n",
+       "      <td>0.4939</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>CA</td>\n",
+       "      <td>0.9678</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5</th>\n",
+       "      <td>CO</td>\n",
+       "      <td>0.9531</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6</th>\n",
+       "      <td>CT</td>\n",
+       "      <td>0.9217</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>7</th>\n",
+       "      <td>DE</td>\n",
+       "      <td>0.9325</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>8</th>\n",
+       "      <td>FL</td>\n",
+       "      <td>0.9603</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>9</th>\n",
+       "      <td>GA</td>\n",
+       "      <td>0.8271</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>10</th>\n",
+       "      <td>HI</td>\n",
+       "      <td>0.9747</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>11</th>\n",
+       "      <td>IA</td>\n",
+       "      <td>0.9287</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>12</th>\n",
+       "      <td>ID</td>\n",
+       "      <td>0.5574</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>13</th>\n",
+       "      <td>IL</td>\n",
+       "      <td>0.9642</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>14</th>\n",
+       "      <td>IN</td>\n",
+       "      <td>0.8360</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>15</th>\n",
+       "      <td>KS</td>\n",
+       "      <td>0.7003</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>16</th>\n",
+       "      <td>KY</td>\n",
+       "      <td>0.6360</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>17</th>\n",
+       "      <td>LA</td>\n",
+       "      <td>0.6124</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>18</th>\n",
+       "      <td>MA</td>\n",
+       "      <td>0.9468</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>19</th>\n",
+       "      <td>MD</td>\n",
+       "      <td>0.9565</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>20</th>\n",
+       "      <td>ME</td>\n",
+       "      <td>0.0900</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>21</th>\n",
+       "      <td>MI</td>\n",
+       "      <td>0.9638</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>22</th>\n",
+       "      <td>MN</td>\n",
+       "      <td>0.9423</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>23</th>\n",
+       "      <td>MO</td>\n",
+       "      <td>0.6249</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>24</th>\n",
+       "      <td>MS</td>\n",
+       "      <td>0.9296</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>25</th>\n",
+       "      <td>MT</td>\n",
+       "      <td>0.7269</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>26</th>\n",
+       "      <td>NC</td>\n",
+       "      <td>-0.4404</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>27</th>\n",
+       "      <td>ND</td>\n",
+       "      <td>0.8720</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>28</th>\n",
+       "      <td>NH</td>\n",
+       "      <td>0.9648</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>29</th>\n",
+       "      <td>NJ</td>\n",
+       "      <td>0.9217</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>30</th>\n",
+       "      <td>NM</td>\n",
+       "      <td>0.9590</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>31</th>\n",
+       "      <td>NV</td>\n",
+       "      <td>0.9260</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>32</th>\n",
+       "      <td>NY</td>\n",
+       "      <td>0.8360</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>33</th>\n",
+       "      <td>OK</td>\n",
+       "      <td>0.7845</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>34</th>\n",
+       "      <td>OR</td>\n",
+       "      <td>0.9413</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>35</th>\n",
+       "      <td>PA</td>\n",
+       "      <td>0.7964</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>36</th>\n",
+       "      <td>RI</td>\n",
+       "      <td>0.9480</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>37</th>\n",
+       "      <td>SC</td>\n",
+       "      <td>0.9468</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>38</th>\n",
+       "      <td>SD</td>\n",
+       "      <td>0.7351</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>39</th>\n",
+       "      <td>TN</td>\n",
+       "      <td>0.9442</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>40</th>\n",
+       "      <td>TX</td>\n",
+       "      <td>0.8481</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>41</th>\n",
+       "      <td>UT</td>\n",
+       "      <td>0.7351</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>42</th>\n",
+       "      <td>VA</td>\n",
+       "      <td>0.9136</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>43</th>\n",
+       "      <td>VT</td>\n",
+       "      <td>0.9575</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>44</th>\n",
+       "      <td>WA</td>\n",
+       "      <td>0.9382</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>45</th>\n",
+       "      <td>WI</td>\n",
+       "      <td>0.9287</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>46</th>\n",
+       "      <td>WV</td>\n",
+       "      <td>0.7506</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>47</th>\n",
+       "      <td>WY</td>\n",
+       "      <td>0.8720</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   State  vader_sentiment_score\n",
+       "0     AK                 0.8893\n",
+       "1     AL                 0.8910\n",
+       "2     AR                 0.6724\n",
+       "3     AZ                 0.4939\n",
+       "4     CA                 0.9678\n",
+       "5     CO                 0.9531\n",
+       "6     CT                 0.9217\n",
+       "7     DE                 0.9325\n",
+       "8     FL                 0.9603\n",
+       "9     GA                 0.8271\n",
+       "10    HI                 0.9747\n",
+       "11    IA                 0.9287\n",
+       "12    ID                 0.5574\n",
+       "13    IL                 0.9642\n",
+       "14    IN                 0.8360\n",
+       "15    KS                 0.7003\n",
+       "16    KY                 0.6360\n",
+       "17    LA                 0.6124\n",
+       "18    MA                 0.9468\n",
+       "19    MD                 0.9565\n",
+       "20    ME                 0.0900\n",
+       "21    MI                 0.9638\n",
+       "22    MN                 0.9423\n",
+       "23    MO                 0.6249\n",
+       "24    MS                 0.9296\n",
+       "25    MT                 0.7269\n",
+       "26    NC                -0.4404\n",
+       "27    ND                 0.8720\n",
+       "28    NH                 0.9648\n",
+       "29    NJ                 0.9217\n",
+       "30    NM                 0.9590\n",
+       "31    NV                 0.9260\n",
+       "32    NY                 0.8360\n",
+       "33    OK                 0.7845\n",
+       "34    OR                 0.9413\n",
+       "35    PA                 0.7964\n",
+       "36    RI                 0.9480\n",
+       "37    SC                 0.9468\n",
+       "38    SD                 0.7351\n",
+       "39    TN                 0.9442\n",
+       "40    TX                 0.8481\n",
+       "41    UT                 0.7351\n",
+       "42    VA                 0.9136\n",
+       "43    VT                 0.9575\n",
+       "44    WA                 0.9382\n",
+       "45    WI                 0.9287\n",
+       "46    WV                 0.7506\n",
+       "47    WY                 0.8720"
+      ]
+     },
+     "execution_count": 83,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "scores"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 84,
+   "id": "633c3a99",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sentiment_average=[average_Alaska,average_Alabama,average_Arkansas,average_Alabama,average_California,\n",
+    "                  average_Colorado,average_Connecticut,average_Delawere,average_Florida,average_Georgia,\n",
+    "                  average_Hawaii,average_Iowa,average_Idaho,average_Illinois,average_Indiana,\n",
+    "                  average_Kansas,average_Kentucky, average_Louisiana,average_Massachusetts,average_Maryland,\n",
+    "                  average_Maine,average_Michigan,average_Minnesota,average_Missouri,average_Mississippi,average_Montanta,\n",
+    "                  average_NorthCarolina,average_NorthDakota,average_NewHamphire,average_NewJersey,\n",
+    "                  average_NewMexico,average_Nevada,average_NewYork,average_Oklahoma,average_Oregon,\n",
+    "                  average_Pennsylvania, average_RhodeIsland, average_SouthCarolina,average_SouthDakota,\n",
+    "                  average_Tennesse,average_Texas,average_Utah, average_Virginia, average_Vermont,\n",
+    "                  average_Washington,average_Wisconsin,average_WestVirginia,average_Wyoming ]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 85,
+   "id": "c54370a9",
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "48"
+      ]
+     },
+     "execution_count": 85,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "len(sentiment_average)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 86,
+   "id": "9191671b",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "x[\"sentiment_average\"] = sentiment_average"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 87,
+   "id": "cef9def4",
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "scores = x[[\"State\",\"Party\",\"sentiment_average\"]]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 88,
+   "id": "71faacd5",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>State</th>\n",
+       "      <th>Party</th>\n",
+       "      <th>sentiment_average</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>AK</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.847500</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>AL</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.440133</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>AR</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>-0.059575</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>AZ</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.440133</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>CA</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.497295</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5</th>\n",
+       "      <td>CO</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.555268</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6</th>\n",
+       "      <td>CT</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>-0.010953</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>7</th>\n",
+       "      <td>DE</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.401356</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>8</th>\n",
+       "      <td>FL</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.213430</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>9</th>\n",
+       "      <td>GA</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.409386</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>10</th>\n",
+       "      <td>HI</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.371228</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>11</th>\n",
+       "      <td>IA</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.385360</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>12</th>\n",
+       "      <td>ID</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.557400</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>13</th>\n",
+       "      <td>IL</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.080074</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>14</th>\n",
+       "      <td>IN</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.188856</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>15</th>\n",
+       "      <td>KS</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>-0.601760</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>16</th>\n",
+       "      <td>KY</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.209575</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>17</th>\n",
+       "      <td>LA</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>-0.122610</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>18</th>\n",
+       "      <td>MA</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.324997</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>19</th>\n",
+       "      <td>MD</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.357600</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>20</th>\n",
+       "      <td>ME</td>\n",
+       "      <td>Independent</td>\n",
+       "      <td>0.090000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>21</th>\n",
+       "      <td>MI</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.430469</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>22</th>\n",
+       "      <td>MN</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.261519</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>23</th>\n",
+       "      <td>MO</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.091622</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>24</th>\n",
+       "      <td>MS</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.144876</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>25</th>\n",
+       "      <td>MT</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.112157</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>26</th>\n",
+       "      <td>NC</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>-0.619867</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>27</th>\n",
+       "      <td>ND</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.603390</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>28</th>\n",
+       "      <td>NH</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.276528</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>29</th>\n",
+       "      <td>NJ</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.178668</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>30</th>\n",
+       "      <td>NM</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.239511</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>31</th>\n",
+       "      <td>NV</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.500945</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>32</th>\n",
+       "      <td>NY</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.345650</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>33</th>\n",
+       "      <td>OK</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>-0.092564</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>34</th>\n",
+       "      <td>OR</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.377273</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>35</th>\n",
+       "      <td>PA</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.691150</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>36</th>\n",
+       "      <td>RI</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.265326</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>37</th>\n",
+       "      <td>SC</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.322890</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>38</th>\n",
+       "      <td>SD</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.735100</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>39</th>\n",
+       "      <td>TN</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.277565</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>40</th>\n",
+       "      <td>TX</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.096286</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>41</th>\n",
+       "      <td>UT</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.295063</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>42</th>\n",
+       "      <td>VA</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.308338</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>43</th>\n",
+       "      <td>VT</td>\n",
+       "      <td>Independent</td>\n",
+       "      <td>0.412717</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>44</th>\n",
+       "      <td>WA</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.198571</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>45</th>\n",
+       "      <td>WI</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.476804</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>46</th>\n",
+       "      <td>WV</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.750600</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>47</th>\n",
+       "      <td>WY</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.872000</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   State        Party  sentiment_average\n",
+       "0     AK   Republican           0.847500\n",
+       "1     AL   Republican           0.440133\n",
+       "2     AR   Republican          -0.059575\n",
+       "3     AZ     Democrat           0.440133\n",
+       "4     CA     Democrat           0.497295\n",
+       "5     CO     Democrat           0.555268\n",
+       "6     CT     Democrat          -0.010953\n",
+       "7     DE     Democrat           0.401356\n",
+       "8     FL   Republican           0.213430\n",
+       "9     GA     Democrat           0.409386\n",
+       "10    HI     Democrat           0.371228\n",
+       "11    IA   Republican           0.385360\n",
+       "12    ID   Republican           0.557400\n",
+       "13    IL     Democrat           0.080074\n",
+       "14    IN   Republican           0.188856\n",
+       "15    KS   Republican          -0.601760\n",
+       "16    KY   Republican           0.209575\n",
+       "17    LA   Republican          -0.122610\n",
+       "18    MA     Democrat           0.324997\n",
+       "19    MD     Democrat           0.357600\n",
+       "20    ME  Independent           0.090000\n",
+       "21    MI     Democrat           0.430469\n",
+       "22    MN     Democrat           0.261519\n",
+       "23    MO   Republican           0.091622\n",
+       "24    MS   Republican           0.144876\n",
+       "25    MT   Republican           0.112157\n",
+       "26    NC   Republican          -0.619867\n",
+       "27    ND   Republican           0.603390\n",
+       "28    NH     Democrat           0.276528\n",
+       "29    NJ     Democrat           0.178668\n",
+       "30    NM     Democrat           0.239511\n",
+       "31    NV     Democrat           0.500945\n",
+       "32    NY     Democrat           0.345650\n",
+       "33    OK   Republican          -0.092564\n",
+       "34    OR     Democrat           0.377273\n",
+       "35    PA   Republican           0.691150\n",
+       "36    RI     Democrat           0.265326\n",
+       "37    SC   Republican           0.322890\n",
+       "38    SD   Republican           0.735100\n",
+       "39    TN   Republican           0.277565\n",
+       "40    TX   Republican           0.096286\n",
+       "41    UT   Republican           0.295063\n",
+       "42    VA     Democrat           0.308338\n",
+       "43    VT  Independent           0.412717\n",
+       "44    WA     Democrat           0.198571\n",
+       "45    WI   Republican           0.476804\n",
+       "46    WV     Democrat           0.750600\n",
+       "47    WY   Republican           0.872000"
+      ]
+     },
+     "execution_count": 88,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "scores"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 89,
+   "id": "5e9d6066",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import matplotlib.pyplot as plt; plt.rcdefaults()\n",
+    "import numpy as np\n",
+    "import matplotlib.pyplot as plt\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 90,
+   "id": "4f78c058",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>State</th>\n",
+       "      <th>Party</th>\n",
+       "      <th>sentiment_average</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>AK</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.847500</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>AL</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.440133</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>AR</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>-0.059575</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>AZ</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.440133</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>CA</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.497295</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5</th>\n",
+       "      <td>CO</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.555268</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6</th>\n",
+       "      <td>CT</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>-0.010953</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>7</th>\n",
+       "      <td>DE</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.401356</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>8</th>\n",
+       "      <td>FL</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.213430</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>9</th>\n",
+       "      <td>GA</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.409386</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>10</th>\n",
+       "      <td>HI</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.371228</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>11</th>\n",
+       "      <td>IA</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.385360</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>12</th>\n",
+       "      <td>ID</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.557400</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>13</th>\n",
+       "      <td>IL</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.080074</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>14</th>\n",
+       "      <td>IN</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.188856</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>15</th>\n",
+       "      <td>KS</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>-0.601760</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>16</th>\n",
+       "      <td>KY</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.209575</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>17</th>\n",
+       "      <td>LA</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>-0.122610</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>18</th>\n",
+       "      <td>MA</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.324997</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>19</th>\n",
+       "      <td>MD</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.357600</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>20</th>\n",
+       "      <td>ME</td>\n",
+       "      <td>Independent</td>\n",
+       "      <td>0.090000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>21</th>\n",
+       "      <td>MI</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.430469</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>22</th>\n",
+       "      <td>MN</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.261519</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>23</th>\n",
+       "      <td>MO</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.091622</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>24</th>\n",
+       "      <td>MS</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.144876</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>25</th>\n",
+       "      <td>MT</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.112157</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>26</th>\n",
+       "      <td>NC</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>-0.619867</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>27</th>\n",
+       "      <td>ND</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.603390</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>28</th>\n",
+       "      <td>NH</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.276528</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>29</th>\n",
+       "      <td>NJ</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.178668</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>30</th>\n",
+       "      <td>NM</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.239511</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>31</th>\n",
+       "      <td>NV</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.500945</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>32</th>\n",
+       "      <td>NY</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.345650</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>33</th>\n",
+       "      <td>OK</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>-0.092564</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>34</th>\n",
+       "      <td>OR</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.377273</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>35</th>\n",
+       "      <td>PA</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.691150</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>36</th>\n",
+       "      <td>RI</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.265326</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>37</th>\n",
+       "      <td>SC</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.322890</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>38</th>\n",
+       "      <td>SD</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.735100</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>39</th>\n",
+       "      <td>TN</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.277565</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>40</th>\n",
+       "      <td>TX</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.096286</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>41</th>\n",
+       "      <td>UT</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.295063</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>42</th>\n",
+       "      <td>VA</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.308338</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>43</th>\n",
+       "      <td>VT</td>\n",
+       "      <td>Independent</td>\n",
+       "      <td>0.412717</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>44</th>\n",
+       "      <td>WA</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.198571</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>45</th>\n",
+       "      <td>WI</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.476804</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>46</th>\n",
+       "      <td>WV</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.750600</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>47</th>\n",
+       "      <td>WY</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.872000</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   State        Party  sentiment_average\n",
+       "0     AK   Republican           0.847500\n",
+       "1     AL   Republican           0.440133\n",
+       "2     AR   Republican          -0.059575\n",
+       "3     AZ     Democrat           0.440133\n",
+       "4     CA     Democrat           0.497295\n",
+       "5     CO     Democrat           0.555268\n",
+       "6     CT     Democrat          -0.010953\n",
+       "7     DE     Democrat           0.401356\n",
+       "8     FL   Republican           0.213430\n",
+       "9     GA     Democrat           0.409386\n",
+       "10    HI     Democrat           0.371228\n",
+       "11    IA   Republican           0.385360\n",
+       "12    ID   Republican           0.557400\n",
+       "13    IL     Democrat           0.080074\n",
+       "14    IN   Republican           0.188856\n",
+       "15    KS   Republican          -0.601760\n",
+       "16    KY   Republican           0.209575\n",
+       "17    LA   Republican          -0.122610\n",
+       "18    MA     Democrat           0.324997\n",
+       "19    MD     Democrat           0.357600\n",
+       "20    ME  Independent           0.090000\n",
+       "21    MI     Democrat           0.430469\n",
+       "22    MN     Democrat           0.261519\n",
+       "23    MO   Republican           0.091622\n",
+       "24    MS   Republican           0.144876\n",
+       "25    MT   Republican           0.112157\n",
+       "26    NC   Republican          -0.619867\n",
+       "27    ND   Republican           0.603390\n",
+       "28    NH     Democrat           0.276528\n",
+       "29    NJ     Democrat           0.178668\n",
+       "30    NM     Democrat           0.239511\n",
+       "31    NV     Democrat           0.500945\n",
+       "32    NY     Democrat           0.345650\n",
+       "33    OK   Republican          -0.092564\n",
+       "34    OR     Democrat           0.377273\n",
+       "35    PA   Republican           0.691150\n",
+       "36    RI     Democrat           0.265326\n",
+       "37    SC   Republican           0.322890\n",
+       "38    SD   Republican           0.735100\n",
+       "39    TN   Republican           0.277565\n",
+       "40    TX   Republican           0.096286\n",
+       "41    UT   Republican           0.295063\n",
+       "42    VA     Democrat           0.308338\n",
+       "43    VT  Independent           0.412717\n",
+       "44    WA     Democrat           0.198571\n",
+       "45    WI   Republican           0.476804\n",
+       "46    WV     Democrat           0.750600\n",
+       "47    WY   Republican           0.872000"
+      ]
+     },
+     "execution_count": 90,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "scores"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 91,
+   "id": "f335e04b",
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>State</th>\n",
+       "      <th>Party</th>\n",
+       "      <th>sentiment_average</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>AK</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.847500</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>AL</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.440133</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>AR</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>-0.059575</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>AZ</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.440133</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>CA</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.497295</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5</th>\n",
+       "      <td>CO</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.555268</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6</th>\n",
+       "      <td>CT</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>-0.010953</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>7</th>\n",
+       "      <td>DE</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.401356</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>8</th>\n",
+       "      <td>FL</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.213430</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>9</th>\n",
+       "      <td>GA</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.409386</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>10</th>\n",
+       "      <td>HI</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.371228</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>11</th>\n",
+       "      <td>IA</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.385360</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>12</th>\n",
+       "      <td>ID</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.557400</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>13</th>\n",
+       "      <td>IL</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.080074</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>14</th>\n",
+       "      <td>IN</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.188856</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>15</th>\n",
+       "      <td>KS</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>-0.601760</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>16</th>\n",
+       "      <td>KY</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.209575</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>17</th>\n",
+       "      <td>LA</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>-0.122610</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>18</th>\n",
+       "      <td>MA</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.324997</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>19</th>\n",
+       "      <td>MD</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.357600</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>20</th>\n",
+       "      <td>ME</td>\n",
+       "      <td>Independent and Republican</td>\n",
+       "      <td>0.090000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>21</th>\n",
+       "      <td>MI</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.430469</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>22</th>\n",
+       "      <td>MN</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.261519</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>23</th>\n",
+       "      <td>MO</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.091622</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>24</th>\n",
+       "      <td>MS</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.144876</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>25</th>\n",
+       "      <td>MT</td>\n",
+       "      <td>Republican and Democrat</td>\n",
+       "      <td>0.112157</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>26</th>\n",
+       "      <td>NC</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>-0.619867</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>27</th>\n",
+       "      <td>ND</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.603390</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>28</th>\n",
+       "      <td>NH</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.276528</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>29</th>\n",
+       "      <td>NJ</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.178668</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>30</th>\n",
+       "      <td>NM</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.239511</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>31</th>\n",
+       "      <td>NV</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.500945</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>32</th>\n",
+       "      <td>NY</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.345650</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>33</th>\n",
+       "      <td>OK</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>-0.092564</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>34</th>\n",
+       "      <td>OR</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.377273</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>35</th>\n",
+       "      <td>PA</td>\n",
+       "      <td>Republican and Democrat</td>\n",
+       "      <td>0.691150</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>36</th>\n",
+       "      <td>RI</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.265326</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>37</th>\n",
+       "      <td>SC</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.322890</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>38</th>\n",
+       "      <td>SD</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.735100</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>39</th>\n",
+       "      <td>TN</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.277565</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>40</th>\n",
+       "      <td>TX</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.096286</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>41</th>\n",
+       "      <td>UT</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.295063</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>42</th>\n",
+       "      <td>VA</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.308338</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>43</th>\n",
+       "      <td>VT</td>\n",
+       "      <td>Independent and Democrat</td>\n",
+       "      <td>0.412717</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>44</th>\n",
+       "      <td>WA</td>\n",
+       "      <td>Democrat</td>\n",
+       "      <td>0.198571</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>45</th>\n",
+       "      <td>WI</td>\n",
+       "      <td>Republican and Democrat</td>\n",
+       "      <td>0.476804</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>46</th>\n",
+       "      <td>WV</td>\n",
+       "      <td>Republican and Democrat</td>\n",
+       "      <td>0.750600</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>47</th>\n",
+       "      <td>WY</td>\n",
+       "      <td>Republican</td>\n",
+       "      <td>0.872000</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   State                       Party  sentiment_average\n",
+       "0     AK                  Republican           0.847500\n",
+       "1     AL                  Republican           0.440133\n",
+       "2     AR                  Republican          -0.059575\n",
+       "3     AZ                    Democrat           0.440133\n",
+       "4     CA                    Democrat           0.497295\n",
+       "5     CO                    Democrat           0.555268\n",
+       "6     CT                    Democrat          -0.010953\n",
+       "7     DE                    Democrat           0.401356\n",
+       "8     FL                  Republican           0.213430\n",
+       "9     GA                    Democrat           0.409386\n",
+       "10    HI                    Democrat           0.371228\n",
+       "11    IA                  Republican           0.385360\n",
+       "12    ID                  Republican           0.557400\n",
+       "13    IL                    Democrat           0.080074\n",
+       "14    IN                  Republican           0.188856\n",
+       "15    KS                  Republican          -0.601760\n",
+       "16    KY                  Republican           0.209575\n",
+       "17    LA                  Republican          -0.122610\n",
+       "18    MA                    Democrat           0.324997\n",
+       "19    MD                    Democrat           0.357600\n",
+       "20    ME  Independent and Republican           0.090000\n",
+       "21    MI                    Democrat           0.430469\n",
+       "22    MN                    Democrat           0.261519\n",
+       "23    MO                  Republican           0.091622\n",
+       "24    MS                  Republican           0.144876\n",
+       "25    MT     Republican and Democrat           0.112157\n",
+       "26    NC                  Republican          -0.619867\n",
+       "27    ND                  Republican           0.603390\n",
+       "28    NH                    Democrat           0.276528\n",
+       "29    NJ                    Democrat           0.178668\n",
+       "30    NM                    Democrat           0.239511\n",
+       "31    NV                    Democrat           0.500945\n",
+       "32    NY                    Democrat           0.345650\n",
+       "33    OK                  Republican          -0.092564\n",
+       "34    OR                    Democrat           0.377273\n",
+       "35    PA     Republican and Democrat           0.691150\n",
+       "36    RI                    Democrat           0.265326\n",
+       "37    SC                  Republican           0.322890\n",
+       "38    SD                  Republican           0.735100\n",
+       "39    TN                  Republican           0.277565\n",
+       "40    TX                  Republican           0.096286\n",
+       "41    UT                  Republican           0.295063\n",
+       "42    VA                    Democrat           0.308338\n",
+       "43    VT    Independent and Democrat           0.412717\n",
+       "44    WA                    Democrat           0.198571\n",
+       "45    WI     Republican and Democrat           0.476804\n",
+       "46    WV     Republican and Democrat           0.750600\n",
+       "47    WY                  Republican           0.872000"
+      ]
+     },
+     "execution_count": 91,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "scores.loc[20, 'Party'] = \"Independent and Republican\"\n",
+    "scores.loc[43, 'Party'] = \"Independent and Democrat\"\n",
+    "scores.loc[25, 'Party'] = \"Republican and Democrat\"\n",
+    "scores.loc[35, 'Party'] = \"Republican and Democrat\"\n",
+    "scores.loc[45, 'Party'] = \"Republican and Democrat\"\n",
+    "scores.loc[46, 'Party'] = \"Republican and Democrat\"\n",
+    "\n",
+    "scores"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 92,
+   "id": "6a82bf72",
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "data": {
+      "application/vnd.plotly.v1+json": {
+       "config": {
+        "plotlyServerURL": "https://plot.ly"
+       },
+       "data": [
+        {
+         "alignmentgroup": "True",
+         "hovertemplate": "Party=Republican<br>State=%{x}<br>sentiment_average=%{y}<extra></extra>",
+         "legendgroup": "Republican",
+         "marker": {
+          "color": "#636efa",
+          "pattern": {
+           "shape": ""
+          }
+         },
+         "name": "Republican",
+         "offsetgroup": "Republican",
+         "orientation": "v",
+         "showlegend": true,
+         "textposition": "auto",
+         "type": "bar",
+         "x": [
+          "AK",
+          "AL",
+          "AR",
+          "FL",
+          "IA",
+          "ID",
+          "IN",
+          "KS",
+          "KY",
+          "LA",
+          "MO",
+          "MS",
+          "NC",
+          "ND",
+          "OK",
+          "SC",
+          "SD",
+          "TN",
+          "TX",
+          "UT",
+          "WY"
+         ],
+         "xaxis": "x",
+         "y": [
+          0.8475,
+          0.4401333333333333,
+          -0.05957499999999999,
+          0.21343,
+          0.38536,
+          0.5574,
+          0.18885555555555555,
+          -0.60176,
+          0.20957499999999998,
+          -0.12260999999999997,
+          0.0916225,
+          0.14487567567567566,
+          -0.6198666666666667,
+          0.60339,
+          -0.09256428571428572,
+          0.32289,
+          0.7351,
+          0.27756500000000006,
+          0.0962860465116279,
+          0.2950625,
+          0.872
+         ],
+         "yaxis": "y"
+        },
+        {
+         "alignmentgroup": "True",
+         "hovertemplate": "Party=Democrat<br>State=%{x}<br>sentiment_average=%{y}<extra></extra>",
+         "legendgroup": "Democrat",
+         "marker": {
+          "color": "#EF553B",
+          "pattern": {
+           "shape": ""
+          }
+         },
+         "name": "Democrat",
+         "offsetgroup": "Democrat",
+         "orientation": "v",
+         "showlegend": true,
+         "textposition": "auto",
+         "type": "bar",
+         "x": [
+          "AZ",
+          "CA",
+          "CO",
+          "CT",
+          "DE",
+          "GA",
+          "HI",
+          "IL",
+          "MA",
+          "MD",
+          "MI",
+          "MN",
+          "NH",
+          "NJ",
+          "NM",
+          "NV",
+          "NY",
+          "OR",
+          "RI",
+          "VA",
+          "WA"
+         ],
+         "xaxis": "x",
+         "y": [
+          0.4401333333333333,
+          0.49729523809523807,
+          0.5552677419354838,
+          -0.010953333333333332,
+          0.40135624999999997,
+          0.4093857142857142,
+          0.371228,
+          0.08007407407407408,
+          0.32499693877551017,
+          0.3575999999999999,
+          0.430469387755102,
+          0.2615190476190476,
+          0.2765279069767442,
+          0.1786681818181818,
+          0.23951111111111117,
+          0.5009454545454546,
+          0.34564999999999996,
+          0.3772728813559321,
+          0.2653259259259259,
+          0.3083375000000001,
+          0.19857066666666665
+         ],
+         "yaxis": "y"
+        },
+        {
+         "alignmentgroup": "True",
+         "hovertemplate": "Party=Independent and Republican<br>State=%{x}<br>sentiment_average=%{y}<extra></extra>",
+         "legendgroup": "Independent and Republican",
+         "marker": {
+          "color": "#00cc96",
+          "pattern": {
+           "shape": ""
+          }
+         },
+         "name": "Independent and Republican",
+         "offsetgroup": "Independent and Republican",
+         "orientation": "v",
+         "showlegend": true,
+         "textposition": "auto",
+         "type": "bar",
+         "x": [
+          "ME"
+         ],
+         "xaxis": "x",
+         "y": [
+          0.09
+         ],
+         "yaxis": "y"
+        },
+        {
+         "alignmentgroup": "True",
+         "hovertemplate": "Party=Republican and Democrat<br>State=%{x}<br>sentiment_average=%{y}<extra></extra>",
+         "legendgroup": "Republican and Democrat",
+         "marker": {
+          "color": "#ab63fa",
+          "pattern": {
+           "shape": ""
+          }
+         },
+         "name": "Republican and Democrat",
+         "offsetgroup": "Republican and Democrat",
+         "orientation": "v",
+         "showlegend": true,
+         "textposition": "auto",
+         "type": "bar",
+         "x": [
+          "MT",
+          "PA",
+          "WI",
+          "WV"
+         ],
+         "xaxis": "x",
+         "y": [
+          0.11215714285714286,
+          0.6911499999999999,
+          0.47680399999999984,
+          0.7506
+         ],
+         "yaxis": "y"
+        },
+        {
+         "alignmentgroup": "True",
+         "hovertemplate": "Party=Independent and Democrat<br>State=%{x}<br>sentiment_average=%{y}<extra></extra>",
+         "legendgroup": "Independent and Democrat",
+         "marker": {
+          "color": "#FFA15A",
+          "pattern": {
+           "shape": ""
+          }
+         },
+         "name": "Independent and Democrat",
+         "offsetgroup": "Independent and Democrat",
+         "orientation": "v",
+         "showlegend": true,
+         "textposition": "auto",
+         "type": "bar",
+         "x": [
+          "VT"
+         ],
+         "xaxis": "x",
+         "y": [
+          0.4127166666666667
+         ],
+         "yaxis": "y"
+        }
+       ],
+       "layout": {
+        "barmode": "relative",
+        "height": 1000,
+        "legend": {
+         "title": {
+          "text": "Party"
+         },
+         "tracegroupgap": 0
+        },
+        "margin": {
+         "t": 60
+        },
+        "template": {
+         "data": {
+          "bar": [
+           {
+            "error_x": {
+             "color": "#2a3f5f"
+            },
+            "error_y": {
+             "color": "#2a3f5f"
+            },
+            "marker": {
+             "line": {
+              "color": "#E5ECF6",
+              "width": 0.5
+             },
+             "pattern": {
+              "fillmode": "overlay",
+              "size": 10,
+              "solidity": 0.2
+             }
+            },
+            "type": "bar"
+           }
+          ],
+          "barpolar": [
+           {
+            "marker": {
+             "line": {
+              "color": "#E5ECF6",
+              "width": 0.5
+             },
+             "pattern": {
+              "fillmode": "overlay",
+              "size": 10,
+              "solidity": 0.2
+             }
+            },
+            "type": "barpolar"
+           }
+          ],
+          "carpet": [
+           {
+            "aaxis": {
+             "endlinecolor": "#2a3f5f",
+             "gridcolor": "white",
+             "linecolor": "white",
+             "minorgridcolor": "white",
+             "startlinecolor": "#2a3f5f"
+            },
+            "baxis": {
+             "endlinecolor": "#2a3f5f",
+             "gridcolor": "white",
+             "linecolor": "white",
+             "minorgridcolor": "white",
+             "startlinecolor": "#2a3f5f"
+            },
+            "type": "carpet"
+           }
+          ],
+          "choropleth": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "type": "choropleth"
+           }
+          ],
+          "contour": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "contour"
+           }
+          ],
+          "contourcarpet": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "type": "contourcarpet"
+           }
+          ],
+          "heatmap": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "heatmap"
+           }
+          ],
+          "heatmapgl": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "heatmapgl"
+           }
+          ],
+          "histogram": [
+           {
+            "marker": {
+             "pattern": {
+              "fillmode": "overlay",
+              "size": 10,
+              "solidity": 0.2
+             }
+            },
+            "type": "histogram"
+           }
+          ],
+          "histogram2d": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "histogram2d"
+           }
+          ],
+          "histogram2dcontour": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "histogram2dcontour"
+           }
+          ],
+          "mesh3d": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "type": "mesh3d"
+           }
+          ],
+          "parcoords": [
+           {
+            "line": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "parcoords"
+           }
+          ],
+          "pie": [
+           {
+            "automargin": true,
+            "type": "pie"
+           }
+          ],
+          "scatter": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scatter"
+           }
+          ],
+          "scatter3d": [
+           {
+            "line": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scatter3d"
+           }
+          ],
+          "scattercarpet": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scattercarpet"
+           }
+          ],
+          "scattergeo": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scattergeo"
+           }
+          ],
+          "scattergl": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scattergl"
+           }
+          ],
+          "scattermapbox": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scattermapbox"
+           }
+          ],
+          "scatterpolar": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scatterpolar"
+           }
+          ],
+          "scatterpolargl": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scatterpolargl"
+           }
+          ],
+          "scatterternary": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scatterternary"
+           }
+          ],
+          "surface": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "surface"
+           }
+          ],
+          "table": [
+           {
+            "cells": {
+             "fill": {
+              "color": "#EBF0F8"
+             },
+             "line": {
+              "color": "white"
+             }
+            },
+            "header": {
+             "fill": {
+              "color": "#C8D4E3"
+             },
+             "line": {
+              "color": "white"
+             }
+            },
+            "type": "table"
+           }
+          ]
+         },
+         "layout": {
+          "annotationdefaults": {
+           "arrowcolor": "#2a3f5f",
+           "arrowhead": 0,
+           "arrowwidth": 1
+          },
+          "autotypenumbers": "strict",
+          "coloraxis": {
+           "colorbar": {
+            "outlinewidth": 0,
+            "ticks": ""
+           }
+          },
+          "colorscale": {
+           "diverging": [
+            [
+             0,
+             "#8e0152"
+            ],
+            [
+             0.1,
+             "#c51b7d"
+            ],
+            [
+             0.2,
+             "#de77ae"
+            ],
+            [
+             0.3,
+             "#f1b6da"
+            ],
+            [
+             0.4,
+             "#fde0ef"
+            ],
+            [
+             0.5,
+             "#f7f7f7"
+            ],
+            [
+             0.6,
+             "#e6f5d0"
+            ],
+            [
+             0.7,
+             "#b8e186"
+            ],
+            [
+             0.8,
+             "#7fbc41"
+            ],
+            [
+             0.9,
+             "#4d9221"
+            ],
+            [
+             1,
+             "#276419"
+            ]
+           ],
+           "sequential": [
+            [
+             0,
+             "#0d0887"
+            ],
+            [
+             0.1111111111111111,
+             "#46039f"
+            ],
+            [
+             0.2222222222222222,
+             "#7201a8"
+            ],
+            [
+             0.3333333333333333,
+             "#9c179e"
+            ],
+            [
+             0.4444444444444444,
+             "#bd3786"
+            ],
+            [
+             0.5555555555555556,
+             "#d8576b"
+            ],
+            [
+             0.6666666666666666,
+             "#ed7953"
+            ],
+            [
+             0.7777777777777778,
+             "#fb9f3a"
+            ],
+            [
+             0.8888888888888888,
+             "#fdca26"
+            ],
+            [
+             1,
+             "#f0f921"
+            ]
+           ],
+           "sequentialminus": [
+            [
+             0,
+             "#0d0887"
+            ],
+            [
+             0.1111111111111111,
+             "#46039f"
+            ],
+            [
+             0.2222222222222222,
+             "#7201a8"
+            ],
+            [
+             0.3333333333333333,
+             "#9c179e"
+            ],
+            [
+             0.4444444444444444,
+             "#bd3786"
+            ],
+            [
+             0.5555555555555556,
+             "#d8576b"
+            ],
+            [
+             0.6666666666666666,
+             "#ed7953"
+            ],
+            [
+             0.7777777777777778,
+             "#fb9f3a"
+            ],
+            [
+             0.8888888888888888,
+             "#fdca26"
+            ],
+            [
+             1,
+             "#f0f921"
+            ]
+           ]
+          },
+          "colorway": [
+           "#636efa",
+           "#EF553B",
+           "#00cc96",
+           "#ab63fa",
+           "#FFA15A",
+           "#19d3f3",
+           "#FF6692",
+           "#B6E880",
+           "#FF97FF",
+           "#FECB52"
+          ],
+          "font": {
+           "color": "#2a3f5f"
+          },
+          "geo": {
+           "bgcolor": "white",
+           "lakecolor": "white",
+           "landcolor": "#E5ECF6",
+           "showlakes": true,
+           "showland": true,
+           "subunitcolor": "white"
+          },
+          "hoverlabel": {
+           "align": "left"
+          },
+          "hovermode": "closest",
+          "mapbox": {
+           "style": "light"
+          },
+          "paper_bgcolor": "white",
+          "plot_bgcolor": "#E5ECF6",
+          "polar": {
+           "angularaxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           },
+           "bgcolor": "#E5ECF6",
+           "radialaxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           }
+          },
+          "scene": {
+           "xaxis": {
+            "backgroundcolor": "#E5ECF6",
+            "gridcolor": "white",
+            "gridwidth": 2,
+            "linecolor": "white",
+            "showbackground": true,
+            "ticks": "",
+            "zerolinecolor": "white"
+           },
+           "yaxis": {
+            "backgroundcolor": "#E5ECF6",
+            "gridcolor": "white",
+            "gridwidth": 2,
+            "linecolor": "white",
+            "showbackground": true,
+            "ticks": "",
+            "zerolinecolor": "white"
+           },
+           "zaxis": {
+            "backgroundcolor": "#E5ECF6",
+            "gridcolor": "white",
+            "gridwidth": 2,
+            "linecolor": "white",
+            "showbackground": true,
+            "ticks": "",
+            "zerolinecolor": "white"
+           }
+          },
+          "shapedefaults": {
+           "line": {
+            "color": "#2a3f5f"
+           }
+          },
+          "ternary": {
+           "aaxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           },
+           "baxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           },
+           "bgcolor": "#E5ECF6",
+           "caxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           }
+          },
+          "title": {
+           "x": 0.05
+          },
+          "xaxis": {
+           "automargin": true,
+           "gridcolor": "white",
+           "linecolor": "white",
+           "ticks": "",
+           "title": {
+            "standoff": 15
+           },
+           "zerolinecolor": "white",
+           "zerolinewidth": 2
+          },
+          "yaxis": {
+           "automargin": true,
+           "gridcolor": "white",
+           "linecolor": "white",
+           "ticks": "",
+           "title": {
+            "standoff": 15
+           },
+           "zerolinecolor": "white",
+           "zerolinewidth": 2
+          }
+         }
+        },
+        "width": 2000,
+        "xaxis": {
+         "anchor": "y",
+         "domain": [
+          0,
+          1
+         ],
+         "title": {
+          "text": "State"
+         }
+        },
+        "yaxis": {
+         "anchor": "x",
+         "domain": [
+          0,
+          1
+         ],
+         "title": {
+          "text": "sentiment_average"
+         }
+        }
+       }
+      },
+      "text/html": [
+       "<div>                            <div id=\"13b362ad-2f5d-49fb-b98d-69e10c03ac4f\" class=\"plotly-graph-div\" style=\"height:1000px; width:2000px;\"></div>            <script type=\"text/javascript\">                require([\"plotly\"], function(Plotly) {                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById(\"13b362ad-2f5d-49fb-b98d-69e10c03ac4f\")) {                    Plotly.newPlot(                        \"13b362ad-2f5d-49fb-b98d-69e10c03ac4f\",                        [{\"alignmentgroup\":\"True\",\"hovertemplate\":\"Party=Republican<br>State=%{x}<br>sentiment_average=%{y}<extra></extra>\",\"legendgroup\":\"Republican\",\"marker\":{\"color\":\"#636efa\",\"pattern\":{\"shape\":\"\"}},\"name\":\"Republican\",\"offsetgroup\":\"Republican\",\"orientation\":\"v\",\"showlegend\":true,\"textposition\":\"auto\",\"x\":[\"AK\",\"AL\",\"AR\",\"FL\",\"IA\",\"ID\",\"IN\",\"KS\",\"KY\",\"LA\",\"MO\",\"MS\",\"NC\",\"ND\",\"OK\",\"SC\",\"SD\",\"TN\",\"TX\",\"UT\",\"WY\"],\"xaxis\":\"x\",\"y\":[0.8475,0.4401333333333333,-0.05957499999999999,0.21343,0.38536,0.5574,0.18885555555555555,-0.60176,0.20957499999999998,-0.12260999999999997,0.0916225,0.14487567567567566,-0.6198666666666667,0.60339,-0.09256428571428572,0.32289,0.7351,0.27756500000000006,0.0962860465116279,0.2950625,0.872],\"yaxis\":\"y\",\"type\":\"bar\"},{\"alignmentgroup\":\"True\",\"hovertemplate\":\"Party=Democrat<br>State=%{x}<br>sentiment_average=%{y}<extra></extra>\",\"legendgroup\":\"Democrat\",\"marker\":{\"color\":\"#EF553B\",\"pattern\":{\"shape\":\"\"}},\"name\":\"Democrat\",\"offsetgroup\":\"Democrat\",\"orientation\":\"v\",\"showlegend\":true,\"textposition\":\"auto\",\"x\":[\"AZ\",\"CA\",\"CO\",\"CT\",\"DE\",\"GA\",\"HI\",\"IL\",\"MA\",\"MD\",\"MI\",\"MN\",\"NH\",\"NJ\",\"NM\",\"NV\",\"NY\",\"OR\",\"RI\",\"VA\",\"WA\"],\"xaxis\":\"x\",\"y\":[0.4401333333333333,0.49729523809523807,0.5552677419354838,-0.010953333333333332,0.40135624999999997,0.4093857142857142,0.371228,0.08007407407407408,0.32499693877551017,0.3575999999999999,0.430469387755102,0.2615190476190476,0.2765279069767442,0.1786681818181818,0.23951111111111117,0.5009454545454546,0.34564999999999996,0.3772728813559321,0.2653259259259259,0.3083375000000001,0.19857066666666665],\"yaxis\":\"y\",\"type\":\"bar\"},{\"alignmentgroup\":\"True\",\"hovertemplate\":\"Party=Independent and Republican<br>State=%{x}<br>sentiment_average=%{y}<extra></extra>\",\"legendgroup\":\"Independent and Republican\",\"marker\":{\"color\":\"#00cc96\",\"pattern\":{\"shape\":\"\"}},\"name\":\"Independent and Republican\",\"offsetgroup\":\"Independent and Republican\",\"orientation\":\"v\",\"showlegend\":true,\"textposition\":\"auto\",\"x\":[\"ME\"],\"xaxis\":\"x\",\"y\":[0.09],\"yaxis\":\"y\",\"type\":\"bar\"},{\"alignmentgroup\":\"True\",\"hovertemplate\":\"Party=Republican and Democrat<br>State=%{x}<br>sentiment_average=%{y}<extra></extra>\",\"legendgroup\":\"Republican and Democrat\",\"marker\":{\"color\":\"#ab63fa\",\"pattern\":{\"shape\":\"\"}},\"name\":\"Republican and Democrat\",\"offsetgroup\":\"Republican and Democrat\",\"orientation\":\"v\",\"showlegend\":true,\"textposition\":\"auto\",\"x\":[\"MT\",\"PA\",\"WI\",\"WV\"],\"xaxis\":\"x\",\"y\":[0.11215714285714286,0.6911499999999999,0.47680399999999984,0.7506],\"yaxis\":\"y\",\"type\":\"bar\"},{\"alignmentgroup\":\"True\",\"hovertemplate\":\"Party=Independent and Democrat<br>State=%{x}<br>sentiment_average=%{y}<extra></extra>\",\"legendgroup\":\"Independent and Democrat\",\"marker\":{\"color\":\"#FFA15A\",\"pattern\":{\"shape\":\"\"}},\"name\":\"Independent and Democrat\",\"offsetgroup\":\"Independent and Democrat\",\"orientation\":\"v\",\"showlegend\":true,\"textposition\":\"auto\",\"x\":[\"VT\"],\"xaxis\":\"x\",\"y\":[0.4127166666666667],\"yaxis\":\"y\",\"type\":\"bar\"}],                        {\"template\":{\"data\":{\"bar\":[{\"error_x\":{\"color\":\"#2a3f5f\"},\"error_y\":{\"color\":\"#2a3f5f\"},\"marker\":{\"line\":{\"color\":\"#E5ECF6\",\"width\":0.5},\"pattern\":{\"fillmode\":\"overlay\",\"size\":10,\"solidity\":0.2}},\"type\":\"bar\"}],\"barpolar\":[{\"marker\":{\"line\":{\"color\":\"#E5ECF6\",\"width\":0.5},\"pattern\":{\"fillmode\":\"overlay\",\"size\":10,\"solidity\":0.2}},\"type\":\"barpolar\"}],\"carpet\":[{\"aaxis\":{\"endlinecolor\":\"#2a3f5f\",\"gridcolor\":\"white\",\"linecolor\":\"white\",\"minorgridcolor\":\"white\",\"startlinecolor\":\"#2a3f5f\"},\"baxis\":{\"endlinecolor\":\"#2a3f5f\",\"gridcolor\":\"white\",\"linecolor\":\"white\",\"minorgridcolor\":\"white\",\"startlinecolor\":\"#2a3f5f\"},\"type\":\"carpet\"}],\"choropleth\":[{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"type\":\"choropleth\"}],\"contour\":[{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"colorscale\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]],\"type\":\"contour\"}],\"contourcarpet\":[{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"type\":\"contourcarpet\"}],\"heatmap\":[{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"colorscale\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]],\"type\":\"heatmap\"}],\"heatmapgl\":[{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"colorscale\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]],\"type\":\"heatmapgl\"}],\"histogram\":[{\"marker\":{\"pattern\":{\"fillmode\":\"overlay\",\"size\":10,\"solidity\":0.2}},\"type\":\"histogram\"}],\"histogram2d\":[{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"colorscale\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]],\"type\":\"histogram2d\"}],\"histogram2dcontour\":[{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"colorscale\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]],\"type\":\"histogram2dcontour\"}],\"mesh3d\":[{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"type\":\"mesh3d\"}],\"parcoords\":[{\"line\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"parcoords\"}],\"pie\":[{\"automargin\":true,\"type\":\"pie\"}],\"scatter\":[{\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"scatter\"}],\"scatter3d\":[{\"line\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"scatter3d\"}],\"scattercarpet\":[{\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"scattercarpet\"}],\"scattergeo\":[{\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"scattergeo\"}],\"scattergl\":[{\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"scattergl\"}],\"scattermapbox\":[{\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"scattermapbox\"}],\"scatterpolar\":[{\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"scatterpolar\"}],\"scatterpolargl\":[{\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"scatterpolargl\"}],\"scatterternary\":[{\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"scatterternary\"}],\"surface\":[{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"colorscale\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]],\"type\":\"surface\"}],\"table\":[{\"cells\":{\"fill\":{\"color\":\"#EBF0F8\"},\"line\":{\"color\":\"white\"}},\"header\":{\"fill\":{\"color\":\"#C8D4E3\"},\"line\":{\"color\":\"white\"}},\"type\":\"table\"}]},\"layout\":{\"annotationdefaults\":{\"arrowcolor\":\"#2a3f5f\",\"arrowhead\":0,\"arrowwidth\":1},\"autotypenumbers\":\"strict\",\"coloraxis\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"colorscale\":{\"diverging\":[[0,\"#8e0152\"],[0.1,\"#c51b7d\"],[0.2,\"#de77ae\"],[0.3,\"#f1b6da\"],[0.4,\"#fde0ef\"],[0.5,\"#f7f7f7\"],[0.6,\"#e6f5d0\"],[0.7,\"#b8e186\"],[0.8,\"#7fbc41\"],[0.9,\"#4d9221\"],[1,\"#276419\"]],\"sequential\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]],\"sequentialminus\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]]},\"colorway\":[\"#636efa\",\"#EF553B\",\"#00cc96\",\"#ab63fa\",\"#FFA15A\",\"#19d3f3\",\"#FF6692\",\"#B6E880\",\"#FF97FF\",\"#FECB52\"],\"font\":{\"color\":\"#2a3f5f\"},\"geo\":{\"bgcolor\":\"white\",\"lakecolor\":\"white\",\"landcolor\":\"#E5ECF6\",\"showlakes\":true,\"showland\":true,\"subunitcolor\":\"white\"},\"hoverlabel\":{\"align\":\"left\"},\"hovermode\":\"closest\",\"mapbox\":{\"style\":\"light\"},\"paper_bgcolor\":\"white\",\"plot_bgcolor\":\"#E5ECF6\",\"polar\":{\"angularaxis\":{\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\"},\"bgcolor\":\"#E5ECF6\",\"radialaxis\":{\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\"}},\"scene\":{\"xaxis\":{\"backgroundcolor\":\"#E5ECF6\",\"gridcolor\":\"white\",\"gridwidth\":2,\"linecolor\":\"white\",\"showbackground\":true,\"ticks\":\"\",\"zerolinecolor\":\"white\"},\"yaxis\":{\"backgroundcolor\":\"#E5ECF6\",\"gridcolor\":\"white\",\"gridwidth\":2,\"linecolor\":\"white\",\"showbackground\":true,\"ticks\":\"\",\"zerolinecolor\":\"white\"},\"zaxis\":{\"backgroundcolor\":\"#E5ECF6\",\"gridcolor\":\"white\",\"gridwidth\":2,\"linecolor\":\"white\",\"showbackground\":true,\"ticks\":\"\",\"zerolinecolor\":\"white\"}},\"shapedefaults\":{\"line\":{\"color\":\"#2a3f5f\"}},\"ternary\":{\"aaxis\":{\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\"},\"baxis\":{\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\"},\"bgcolor\":\"#E5ECF6\",\"caxis\":{\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\"}},\"title\":{\"x\":0.05},\"xaxis\":{\"automargin\":true,\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\",\"title\":{\"standoff\":15},\"zerolinecolor\":\"white\",\"zerolinewidth\":2},\"yaxis\":{\"automargin\":true,\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\",\"title\":{\"standoff\":15},\"zerolinecolor\":\"white\",\"zerolinewidth\":2}}},\"xaxis\":{\"anchor\":\"y\",\"domain\":[0.0,1.0],\"title\":{\"text\":\"State\"}},\"yaxis\":{\"anchor\":\"x\",\"domain\":[0.0,1.0],\"title\":{\"text\":\"sentiment_average\"}},\"legend\":{\"title\":{\"text\":\"Party\"},\"tracegroupgap\":0},\"margin\":{\"t\":60},\"barmode\":\"relative\",\"height\":1000,\"width\":2000},                        {\"responsive\": true}                    ).then(function(){\n",
+       "                            \n",
+       "var gd = document.getElementById('13b362ad-2f5d-49fb-b98d-69e10c03ac4f');\n",
+       "var x = new MutationObserver(function (mutations, observer) {{\n",
+       "        var display = window.getComputedStyle(gd).display;\n",
+       "        if (!display || display === 'none') {{\n",
+       "            console.log([gd, 'removed!']);\n",
+       "            Plotly.purge(gd);\n",
+       "            observer.disconnect();\n",
+       "        }}\n",
+       "}});\n",
+       "\n",
+       "// Listen for the removal of the full notebook cells\n",
+       "var notebookContainer = gd.closest('#notebook-container');\n",
+       "if (notebookContainer) {{\n",
+       "    x.observe(notebookContainer, {childList: true});\n",
+       "}}\n",
+       "\n",
+       "// Listen for the clearing of the current output cell\n",
+       "var outputEl = gd.closest('.output');\n",
+       "if (outputEl) {{\n",
+       "    x.observe(outputEl, {childList: true});\n",
+       "}}\n",
+       "\n",
+       "                        })                };                });            </script>        </div>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "import plotly.express as px\n",
+    "fig = px.bar(scores, x='State', y='sentiment_average', color='Party', width = 2000, height=1000)\n",
+    "fig.update_traces(showlegend=True)\n",
+    "fig.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 93,
+   "id": "27320d28",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['Alphabet',\n",
+       " 'Alphabet_r',\n",
+       " 'Antique',\n",
+       " 'Antique_r',\n",
+       " 'Bold',\n",
+       " 'Bold_r',\n",
+       " 'D3',\n",
+       " 'D3_r',\n",
+       " 'Dark2',\n",
+       " 'Dark24',\n",
+       " 'Dark24_r',\n",
+       " 'Dark2_r',\n",
+       " 'G10',\n",
+       " 'G10_r',\n",
+       " 'Light24',\n",
+       " 'Light24_r',\n",
+       " 'Pastel',\n",
+       " 'Pastel1',\n",
+       " 'Pastel1_r',\n",
+       " 'Pastel2',\n",
+       " 'Pastel2_r',\n",
+       " 'Pastel_r',\n",
+       " 'Plotly',\n",
+       " 'Plotly_r',\n",
+       " 'Prism',\n",
+       " 'Prism_r',\n",
+       " 'Safe',\n",
+       " 'Safe_r',\n",
+       " 'Set1',\n",
+       " 'Set1_r',\n",
+       " 'Set2',\n",
+       " 'Set2_r',\n",
+       " 'Set3',\n",
+       " 'Set3_r',\n",
+       " 'T10',\n",
+       " 'T10_r',\n",
+       " 'Vivid',\n",
+       " 'Vivid_r',\n",
+       " '__all__',\n",
+       " '__builtins__',\n",
+       " '__cached__',\n",
+       " '__doc__',\n",
+       " '__file__',\n",
+       " '__loader__',\n",
+       " '__name__',\n",
+       " '__package__',\n",
+       " '__spec__',\n",
+       " '_cols',\n",
+       " '_contents',\n",
+       " '_k',\n",
+       " '_swatches',\n",
+       " 'swatches']"
+      ]
+     },
+     "execution_count": 93,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "dir(px.colors.qualitative)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 94,
+   "id": "a966cdfc",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Requirement already satisfied: plotly-express in /Applications/Anaconda/anaconda3/lib/python3.9/site-packages (0.4.1)\n",
+      "Requirement already satisfied: statsmodels>=0.9.0 in /Applications/Anaconda/anaconda3/lib/python3.9/site-packages (from plotly-express) (0.13.2)\n",
+      "Requirement already satisfied: pandas>=0.20.0 in /Applications/Anaconda/anaconda3/lib/python3.9/site-packages (from plotly-express) (1.4.3)\n",
+      "Requirement already satisfied: scipy>=0.18 in /Applications/Anaconda/anaconda3/lib/python3.9/site-packages (from plotly-express) (1.8.1)\n",
+      "Requirement already satisfied: numpy>=1.11 in /Applications/Anaconda/anaconda3/lib/python3.9/site-packages (from plotly-express) (1.21.5)\n",
+      "Requirement already satisfied: plotly>=4.1.0 in /Applications/Anaconda/anaconda3/lib/python3.9/site-packages (from plotly-express) (5.6.0)\n",
+      "Requirement already satisfied: patsy>=0.5 in /Applications/Anaconda/anaconda3/lib/python3.9/site-packages (from plotly-express) (0.5.2)\n",
+      "Requirement already satisfied: python-dateutil>=2.8.1 in /Applications/Anaconda/anaconda3/lib/python3.9/site-packages (from pandas>=0.20.0->plotly-express) (2.8.2)\n",
+      "Requirement already satisfied: pytz>=2020.1 in /Applications/Anaconda/anaconda3/lib/python3.9/site-packages (from pandas>=0.20.0->plotly-express) (2021.3)\n",
+      "Requirement already satisfied: six in /Applications/Anaconda/anaconda3/lib/python3.9/site-packages (from patsy>=0.5->plotly-express) (1.16.0)\n",
+      "Requirement already satisfied: tenacity>=6.2.0 in /Applications/Anaconda/anaconda3/lib/python3.9/site-packages (from plotly>=4.1.0->plotly-express) (8.0.1)\n",
+      "Requirement already satisfied: packaging>=21.3 in /Applications/Anaconda/anaconda3/lib/python3.9/site-packages (from statsmodels>=0.9.0->plotly-express) (21.3)\n",
+      "Requirement already satisfied: pyparsing!=3.0.5,>=2.0.2 in /Applications/Anaconda/anaconda3/lib/python3.9/site-packages (from packaging>=21.3->statsmodels>=0.9.0->plotly-express) (3.0.4)\n"
+     ]
+    }
+   ],
+   "source": [
+    "! pip install plotly-express"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 95,
+   "id": "2815eb98",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "application/vnd.plotly.v1+json": {
+       "config": {
+        "plotlyServerURL": "https://plot.ly"
+       },
+       "data": [
+        {
+         "coloraxis": "coloraxis",
+         "geo": "geo",
+         "hovertemplate": "State=%{location}<br>sentiment_average=%{z}<extra></extra>",
+         "locationmode": "USA-states",
+         "locations": [
+          "AK",
+          "AL",
+          "AR",
+          "AZ",
+          "CA",
+          "CO",
+          "CT",
+          "DE",
+          "FL",
+          "GA",
+          "HI",
+          "IA",
+          "ID",
+          "IL",
+          "IN",
+          "KS",
+          "KY",
+          "LA",
+          "MA",
+          "MD",
+          "ME",
+          "MI",
+          "MN",
+          "MO",
+          "MS",
+          "MT",
+          "NC",
+          "ND",
+          "NH",
+          "NJ",
+          "NM",
+          "NV",
+          "NY",
+          "OK",
+          "OR",
+          "PA",
+          "RI",
+          "SC",
+          "SD",
+          "TN",
+          "TX",
+          "UT",
+          "VA",
+          "VT",
+          "WA",
+          "WI",
+          "WV",
+          "WY"
+         ],
+         "name": "",
+         "type": "choropleth",
+         "z": [
+          0.8475,
+          0.4401333333333333,
+          -0.05957499999999999,
+          0.4401333333333333,
+          0.49729523809523807,
+          0.5552677419354838,
+          -0.010953333333333332,
+          0.40135624999999997,
+          0.21343,
+          0.4093857142857142,
+          0.371228,
+          0.38536,
+          0.5574,
+          0.08007407407407408,
+          0.18885555555555555,
+          -0.60176,
+          0.20957499999999998,
+          -0.12260999999999997,
+          0.32499693877551017,
+          0.3575999999999999,
+          0.09,
+          0.430469387755102,
+          0.2615190476190476,
+          0.0916225,
+          0.14487567567567566,
+          0.11215714285714286,
+          -0.6198666666666667,
+          0.60339,
+          0.2765279069767442,
+          0.1786681818181818,
+          0.23951111111111117,
+          0.5009454545454546,
+          0.34564999999999996,
+          -0.09256428571428572,
+          0.3772728813559321,
+          0.6911499999999999,
+          0.2653259259259259,
+          0.32289,
+          0.7351,
+          0.27756500000000006,
+          0.0962860465116279,
+          0.2950625,
+          0.3083375000000001,
+          0.4127166666666667,
+          0.19857066666666665,
+          0.47680399999999984,
+          0.7506,
+          0.872
+         ]
+        }
+       ],
+       "layout": {
+        "coloraxis": {
+         "colorbar": {
+          "title": {
+           "text": "sentiment_average"
+          }
+         },
+         "colorscale": [
+          [
+           0,
+           "rgb(0, 147, 146)"
+          ],
+          [
+           0.16666666666666666,
+           "rgb(114, 170, 161)"
+          ],
+          [
+           0.3333333333333333,
+           "rgb(177, 199, 179)"
+          ],
+          [
+           0.5,
+           "rgb(241, 234, 200)"
+          ],
+          [
+           0.6666666666666666,
+           "rgb(229, 185, 173)"
+          ],
+          [
+           0.8333333333333334,
+           "rgb(217, 137, 148)"
+          ],
+          [
+           1,
+           "rgb(208, 88, 126)"
+          ]
+         ]
+        },
+        "geo": {
+         "center": {},
+         "domain": {
+          "x": [
+           0,
+           1
+          ],
+          "y": [
+           0,
+           1
+          ]
+         },
+         "scope": "usa"
+        },
+        "legend": {
+         "tracegroupgap": 0
+        },
+        "margin": {
+         "t": 60
+        },
+        "template": {
+         "data": {
+          "bar": [
+           {
+            "error_x": {
+             "color": "#2a3f5f"
+            },
+            "error_y": {
+             "color": "#2a3f5f"
+            },
+            "marker": {
+             "line": {
+              "color": "#E5ECF6",
+              "width": 0.5
+             },
+             "pattern": {
+              "fillmode": "overlay",
+              "size": 10,
+              "solidity": 0.2
+             }
+            },
+            "type": "bar"
+           }
+          ],
+          "barpolar": [
+           {
+            "marker": {
+             "line": {
+              "color": "#E5ECF6",
+              "width": 0.5
+             },
+             "pattern": {
+              "fillmode": "overlay",
+              "size": 10,
+              "solidity": 0.2
+             }
+            },
+            "type": "barpolar"
+           }
+          ],
+          "carpet": [
+           {
+            "aaxis": {
+             "endlinecolor": "#2a3f5f",
+             "gridcolor": "white",
+             "linecolor": "white",
+             "minorgridcolor": "white",
+             "startlinecolor": "#2a3f5f"
+            },
+            "baxis": {
+             "endlinecolor": "#2a3f5f",
+             "gridcolor": "white",
+             "linecolor": "white",
+             "minorgridcolor": "white",
+             "startlinecolor": "#2a3f5f"
+            },
+            "type": "carpet"
+           }
+          ],
+          "choropleth": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "type": "choropleth"
+           }
+          ],
+          "contour": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "contour"
+           }
+          ],
+          "contourcarpet": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "type": "contourcarpet"
+           }
+          ],
+          "heatmap": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "heatmap"
+           }
+          ],
+          "heatmapgl": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "heatmapgl"
+           }
+          ],
+          "histogram": [
+           {
+            "marker": {
+             "pattern": {
+              "fillmode": "overlay",
+              "size": 10,
+              "solidity": 0.2
+             }
+            },
+            "type": "histogram"
+           }
+          ],
+          "histogram2d": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "histogram2d"
+           }
+          ],
+          "histogram2dcontour": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "histogram2dcontour"
+           }
+          ],
+          "mesh3d": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "type": "mesh3d"
+           }
+          ],
+          "parcoords": [
+           {
+            "line": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "parcoords"
+           }
+          ],
+          "pie": [
+           {
+            "automargin": true,
+            "type": "pie"
+           }
+          ],
+          "scatter": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scatter"
+           }
+          ],
+          "scatter3d": [
+           {
+            "line": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scatter3d"
+           }
+          ],
+          "scattercarpet": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scattercarpet"
+           }
+          ],
+          "scattergeo": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scattergeo"
+           }
+          ],
+          "scattergl": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scattergl"
+           }
+          ],
+          "scattermapbox": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scattermapbox"
+           }
+          ],
+          "scatterpolar": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scatterpolar"
+           }
+          ],
+          "scatterpolargl": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scatterpolargl"
+           }
+          ],
+          "scatterternary": [
+           {
+            "marker": {
+             "colorbar": {
+              "outlinewidth": 0,
+              "ticks": ""
+             }
+            },
+            "type": "scatterternary"
+           }
+          ],
+          "surface": [
+           {
+            "colorbar": {
+             "outlinewidth": 0,
+             "ticks": ""
+            },
+            "colorscale": [
+             [
+              0,
+              "#0d0887"
+             ],
+             [
+              0.1111111111111111,
+              "#46039f"
+             ],
+             [
+              0.2222222222222222,
+              "#7201a8"
+             ],
+             [
+              0.3333333333333333,
+              "#9c179e"
+             ],
+             [
+              0.4444444444444444,
+              "#bd3786"
+             ],
+             [
+              0.5555555555555556,
+              "#d8576b"
+             ],
+             [
+              0.6666666666666666,
+              "#ed7953"
+             ],
+             [
+              0.7777777777777778,
+              "#fb9f3a"
+             ],
+             [
+              0.8888888888888888,
+              "#fdca26"
+             ],
+             [
+              1,
+              "#f0f921"
+             ]
+            ],
+            "type": "surface"
+           }
+          ],
+          "table": [
+           {
+            "cells": {
+             "fill": {
+              "color": "#EBF0F8"
+             },
+             "line": {
+              "color": "white"
+             }
+            },
+            "header": {
+             "fill": {
+              "color": "#C8D4E3"
+             },
+             "line": {
+              "color": "white"
+             }
+            },
+            "type": "table"
+           }
+          ]
+         },
+         "layout": {
+          "annotationdefaults": {
+           "arrowcolor": "#2a3f5f",
+           "arrowhead": 0,
+           "arrowwidth": 1
+          },
+          "autotypenumbers": "strict",
+          "coloraxis": {
+           "colorbar": {
+            "outlinewidth": 0,
+            "ticks": ""
+           }
+          },
+          "colorscale": {
+           "diverging": [
+            [
+             0,
+             "#8e0152"
+            ],
+            [
+             0.1,
+             "#c51b7d"
+            ],
+            [
+             0.2,
+             "#de77ae"
+            ],
+            [
+             0.3,
+             "#f1b6da"
+            ],
+            [
+             0.4,
+             "#fde0ef"
+            ],
+            [
+             0.5,
+             "#f7f7f7"
+            ],
+            [
+             0.6,
+             "#e6f5d0"
+            ],
+            [
+             0.7,
+             "#b8e186"
+            ],
+            [
+             0.8,
+             "#7fbc41"
+            ],
+            [
+             0.9,
+             "#4d9221"
+            ],
+            [
+             1,
+             "#276419"
+            ]
+           ],
+           "sequential": [
+            [
+             0,
+             "#0d0887"
+            ],
+            [
+             0.1111111111111111,
+             "#46039f"
+            ],
+            [
+             0.2222222222222222,
+             "#7201a8"
+            ],
+            [
+             0.3333333333333333,
+             "#9c179e"
+            ],
+            [
+             0.4444444444444444,
+             "#bd3786"
+            ],
+            [
+             0.5555555555555556,
+             "#d8576b"
+            ],
+            [
+             0.6666666666666666,
+             "#ed7953"
+            ],
+            [
+             0.7777777777777778,
+             "#fb9f3a"
+            ],
+            [
+             0.8888888888888888,
+             "#fdca26"
+            ],
+            [
+             1,
+             "#f0f921"
+            ]
+           ],
+           "sequentialminus": [
+            [
+             0,
+             "#0d0887"
+            ],
+            [
+             0.1111111111111111,
+             "#46039f"
+            ],
+            [
+             0.2222222222222222,
+             "#7201a8"
+            ],
+            [
+             0.3333333333333333,
+             "#9c179e"
+            ],
+            [
+             0.4444444444444444,
+             "#bd3786"
+            ],
+            [
+             0.5555555555555556,
+             "#d8576b"
+            ],
+            [
+             0.6666666666666666,
+             "#ed7953"
+            ],
+            [
+             0.7777777777777778,
+             "#fb9f3a"
+            ],
+            [
+             0.8888888888888888,
+             "#fdca26"
+            ],
+            [
+             1,
+             "#f0f921"
+            ]
+           ]
+          },
+          "colorway": [
+           "#636efa",
+           "#EF553B",
+           "#00cc96",
+           "#ab63fa",
+           "#FFA15A",
+           "#19d3f3",
+           "#FF6692",
+           "#B6E880",
+           "#FF97FF",
+           "#FECB52"
+          ],
+          "font": {
+           "color": "#2a3f5f"
+          },
+          "geo": {
+           "bgcolor": "white",
+           "lakecolor": "white",
+           "landcolor": "#E5ECF6",
+           "showlakes": true,
+           "showland": true,
+           "subunitcolor": "white"
+          },
+          "hoverlabel": {
+           "align": "left"
+          },
+          "hovermode": "closest",
+          "mapbox": {
+           "style": "light"
+          },
+          "paper_bgcolor": "white",
+          "plot_bgcolor": "#E5ECF6",
+          "polar": {
+           "angularaxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           },
+           "bgcolor": "#E5ECF6",
+           "radialaxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           }
+          },
+          "scene": {
+           "xaxis": {
+            "backgroundcolor": "#E5ECF6",
+            "gridcolor": "white",
+            "gridwidth": 2,
+            "linecolor": "white",
+            "showbackground": true,
+            "ticks": "",
+            "zerolinecolor": "white"
+           },
+           "yaxis": {
+            "backgroundcolor": "#E5ECF6",
+            "gridcolor": "white",
+            "gridwidth": 2,
+            "linecolor": "white",
+            "showbackground": true,
+            "ticks": "",
+            "zerolinecolor": "white"
+           },
+           "zaxis": {
+            "backgroundcolor": "#E5ECF6",
+            "gridcolor": "white",
+            "gridwidth": 2,
+            "linecolor": "white",
+            "showbackground": true,
+            "ticks": "",
+            "zerolinecolor": "white"
+           }
+          },
+          "shapedefaults": {
+           "line": {
+            "color": "#2a3f5f"
+           }
+          },
+          "ternary": {
+           "aaxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           },
+           "baxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           },
+           "bgcolor": "#E5ECF6",
+           "caxis": {
+            "gridcolor": "white",
+            "linecolor": "white",
+            "ticks": ""
+           }
+          },
+          "title": {
+           "x": 0.05
+          },
+          "xaxis": {
+           "automargin": true,
+           "gridcolor": "white",
+           "linecolor": "white",
+           "ticks": "",
+           "title": {
+            "standoff": 15
+           },
+           "zerolinecolor": "white",
+           "zerolinewidth": 2
+          },
+          "yaxis": {
+           "automargin": true,
+           "gridcolor": "white",
+           "linecolor": "white",
+           "ticks": "",
+           "title": {
+            "standoff": 15
+           },
+           "zerolinecolor": "white",
+           "zerolinewidth": 2
+          }
+         }
+        }
+       }
+      },
+      "text/html": [
+       "<div>                            <div id=\"bb2dcb23-ee2e-4ee0-bd03-aa06a421be6e\" class=\"plotly-graph-div\" style=\"height:525px; width:100%;\"></div>            <script type=\"text/javascript\">                require([\"plotly\"], function(Plotly) {                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById(\"bb2dcb23-ee2e-4ee0-bd03-aa06a421be6e\")) {                    Plotly.newPlot(                        \"bb2dcb23-ee2e-4ee0-bd03-aa06a421be6e\",                        [{\"coloraxis\":\"coloraxis\",\"geo\":\"geo\",\"hovertemplate\":\"State=%{location}<br>sentiment_average=%{z}<extra></extra>\",\"locationmode\":\"USA-states\",\"locations\":[\"AK\",\"AL\",\"AR\",\"AZ\",\"CA\",\"CO\",\"CT\",\"DE\",\"FL\",\"GA\",\"HI\",\"IA\",\"ID\",\"IL\",\"IN\",\"KS\",\"KY\",\"LA\",\"MA\",\"MD\",\"ME\",\"MI\",\"MN\",\"MO\",\"MS\",\"MT\",\"NC\",\"ND\",\"NH\",\"NJ\",\"NM\",\"NV\",\"NY\",\"OK\",\"OR\",\"PA\",\"RI\",\"SC\",\"SD\",\"TN\",\"TX\",\"UT\",\"VA\",\"VT\",\"WA\",\"WI\",\"WV\",\"WY\"],\"name\":\"\",\"z\":[0.8475,0.4401333333333333,-0.05957499999999999,0.4401333333333333,0.49729523809523807,0.5552677419354838,-0.010953333333333332,0.40135624999999997,0.21343,0.4093857142857142,0.371228,0.38536,0.5574,0.08007407407407408,0.18885555555555555,-0.60176,0.20957499999999998,-0.12260999999999997,0.32499693877551017,0.3575999999999999,0.09,0.430469387755102,0.2615190476190476,0.0916225,0.14487567567567566,0.11215714285714286,-0.6198666666666667,0.60339,0.2765279069767442,0.1786681818181818,0.23951111111111117,0.5009454545454546,0.34564999999999996,-0.09256428571428572,0.3772728813559321,0.6911499999999999,0.2653259259259259,0.32289,0.7351,0.27756500000000006,0.0962860465116279,0.2950625,0.3083375000000001,0.4127166666666667,0.19857066666666665,0.47680399999999984,0.7506,0.872],\"type\":\"choropleth\"}],                        {\"template\":{\"data\":{\"bar\":[{\"error_x\":{\"color\":\"#2a3f5f\"},\"error_y\":{\"color\":\"#2a3f5f\"},\"marker\":{\"line\":{\"color\":\"#E5ECF6\",\"width\":0.5},\"pattern\":{\"fillmode\":\"overlay\",\"size\":10,\"solidity\":0.2}},\"type\":\"bar\"}],\"barpolar\":[{\"marker\":{\"line\":{\"color\":\"#E5ECF6\",\"width\":0.5},\"pattern\":{\"fillmode\":\"overlay\",\"size\":10,\"solidity\":0.2}},\"type\":\"barpolar\"}],\"carpet\":[{\"aaxis\":{\"endlinecolor\":\"#2a3f5f\",\"gridcolor\":\"white\",\"linecolor\":\"white\",\"minorgridcolor\":\"white\",\"startlinecolor\":\"#2a3f5f\"},\"baxis\":{\"endlinecolor\":\"#2a3f5f\",\"gridcolor\":\"white\",\"linecolor\":\"white\",\"minorgridcolor\":\"white\",\"startlinecolor\":\"#2a3f5f\"},\"type\":\"carpet\"}],\"choropleth\":[{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"type\":\"choropleth\"}],\"contour\":[{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"colorscale\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]],\"type\":\"contour\"}],\"contourcarpet\":[{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"type\":\"contourcarpet\"}],\"heatmap\":[{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"colorscale\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]],\"type\":\"heatmap\"}],\"heatmapgl\":[{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"colorscale\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]],\"type\":\"heatmapgl\"}],\"histogram\":[{\"marker\":{\"pattern\":{\"fillmode\":\"overlay\",\"size\":10,\"solidity\":0.2}},\"type\":\"histogram\"}],\"histogram2d\":[{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"colorscale\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]],\"type\":\"histogram2d\"}],\"histogram2dcontour\":[{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"colorscale\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]],\"type\":\"histogram2dcontour\"}],\"mesh3d\":[{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"type\":\"mesh3d\"}],\"parcoords\":[{\"line\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"parcoords\"}],\"pie\":[{\"automargin\":true,\"type\":\"pie\"}],\"scatter\":[{\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"scatter\"}],\"scatter3d\":[{\"line\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"scatter3d\"}],\"scattercarpet\":[{\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"scattercarpet\"}],\"scattergeo\":[{\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"scattergeo\"}],\"scattergl\":[{\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"scattergl\"}],\"scattermapbox\":[{\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"scattermapbox\"}],\"scatterpolar\":[{\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"scatterpolar\"}],\"scatterpolargl\":[{\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"scatterpolargl\"}],\"scatterternary\":[{\"marker\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"type\":\"scatterternary\"}],\"surface\":[{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"},\"colorscale\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]],\"type\":\"surface\"}],\"table\":[{\"cells\":{\"fill\":{\"color\":\"#EBF0F8\"},\"line\":{\"color\":\"white\"}},\"header\":{\"fill\":{\"color\":\"#C8D4E3\"},\"line\":{\"color\":\"white\"}},\"type\":\"table\"}]},\"layout\":{\"annotationdefaults\":{\"arrowcolor\":\"#2a3f5f\",\"arrowhead\":0,\"arrowwidth\":1},\"autotypenumbers\":\"strict\",\"coloraxis\":{\"colorbar\":{\"outlinewidth\":0,\"ticks\":\"\"}},\"colorscale\":{\"diverging\":[[0,\"#8e0152\"],[0.1,\"#c51b7d\"],[0.2,\"#de77ae\"],[0.3,\"#f1b6da\"],[0.4,\"#fde0ef\"],[0.5,\"#f7f7f7\"],[0.6,\"#e6f5d0\"],[0.7,\"#b8e186\"],[0.8,\"#7fbc41\"],[0.9,\"#4d9221\"],[1,\"#276419\"]],\"sequential\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]],\"sequentialminus\":[[0.0,\"#0d0887\"],[0.1111111111111111,\"#46039f\"],[0.2222222222222222,\"#7201a8\"],[0.3333333333333333,\"#9c179e\"],[0.4444444444444444,\"#bd3786\"],[0.5555555555555556,\"#d8576b\"],[0.6666666666666666,\"#ed7953\"],[0.7777777777777778,\"#fb9f3a\"],[0.8888888888888888,\"#fdca26\"],[1.0,\"#f0f921\"]]},\"colorway\":[\"#636efa\",\"#EF553B\",\"#00cc96\",\"#ab63fa\",\"#FFA15A\",\"#19d3f3\",\"#FF6692\",\"#B6E880\",\"#FF97FF\",\"#FECB52\"],\"font\":{\"color\":\"#2a3f5f\"},\"geo\":{\"bgcolor\":\"white\",\"lakecolor\":\"white\",\"landcolor\":\"#E5ECF6\",\"showlakes\":true,\"showland\":true,\"subunitcolor\":\"white\"},\"hoverlabel\":{\"align\":\"left\"},\"hovermode\":\"closest\",\"mapbox\":{\"style\":\"light\"},\"paper_bgcolor\":\"white\",\"plot_bgcolor\":\"#E5ECF6\",\"polar\":{\"angularaxis\":{\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\"},\"bgcolor\":\"#E5ECF6\",\"radialaxis\":{\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\"}},\"scene\":{\"xaxis\":{\"backgroundcolor\":\"#E5ECF6\",\"gridcolor\":\"white\",\"gridwidth\":2,\"linecolor\":\"white\",\"showbackground\":true,\"ticks\":\"\",\"zerolinecolor\":\"white\"},\"yaxis\":{\"backgroundcolor\":\"#E5ECF6\",\"gridcolor\":\"white\",\"gridwidth\":2,\"linecolor\":\"white\",\"showbackground\":true,\"ticks\":\"\",\"zerolinecolor\":\"white\"},\"zaxis\":{\"backgroundcolor\":\"#E5ECF6\",\"gridcolor\":\"white\",\"gridwidth\":2,\"linecolor\":\"white\",\"showbackground\":true,\"ticks\":\"\",\"zerolinecolor\":\"white\"}},\"shapedefaults\":{\"line\":{\"color\":\"#2a3f5f\"}},\"ternary\":{\"aaxis\":{\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\"},\"baxis\":{\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\"},\"bgcolor\":\"#E5ECF6\",\"caxis\":{\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\"}},\"title\":{\"x\":0.05},\"xaxis\":{\"automargin\":true,\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\",\"title\":{\"standoff\":15},\"zerolinecolor\":\"white\",\"zerolinewidth\":2},\"yaxis\":{\"automargin\":true,\"gridcolor\":\"white\",\"linecolor\":\"white\",\"ticks\":\"\",\"title\":{\"standoff\":15},\"zerolinecolor\":\"white\",\"zerolinewidth\":2}}},\"geo\":{\"domain\":{\"x\":[0.0,1.0],\"y\":[0.0,1.0]},\"center\":{},\"scope\":\"usa\"},\"coloraxis\":{\"colorbar\":{\"title\":{\"text\":\"sentiment_average\"}},\"colorscale\":[[0.0,\"rgb(0, 147, 146)\"],[0.16666666666666666,\"rgb(114, 170, 161)\"],[0.3333333333333333,\"rgb(177, 199, 179)\"],[0.5,\"rgb(241, 234, 200)\"],[0.6666666666666666,\"rgb(229, 185, 173)\"],[0.8333333333333334,\"rgb(217, 137, 148)\"],[1.0,\"rgb(208, 88, 126)\"]]},\"legend\":{\"tracegroupgap\":0},\"margin\":{\"t\":60}},                        {\"responsive\": true}                    ).then(function(){\n",
+       "                            \n",
+       "var gd = document.getElementById('bb2dcb23-ee2e-4ee0-bd03-aa06a421be6e');\n",
+       "var x = new MutationObserver(function (mutations, observer) {{\n",
+       "        var display = window.getComputedStyle(gd).display;\n",
+       "        if (!display || display === 'none') {{\n",
+       "            console.log([gd, 'removed!']);\n",
+       "            Plotly.purge(gd);\n",
+       "            observer.disconnect();\n",
+       "        }}\n",
+       "}});\n",
+       "\n",
+       "// Listen for the removal of the full notebook cells\n",
+       "var notebookContainer = gd.closest('#notebook-container');\n",
+       "if (notebookContainer) {{\n",
+       "    x.observe(notebookContainer, {childList: true});\n",
+       "}}\n",
+       "\n",
+       "// Listen for the clearing of the current output cell\n",
+       "var outputEl = gd.closest('.output');\n",
+       "if (outputEl) {{\n",
+       "    x.observe(outputEl, {childList: true});\n",
+       "}}\n",
+       "\n",
+       "                        })                };                });            </script>        </div>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "import plotly.express as px\n",
+    "\n",
+    "fig = px.choropleth(scores,\n",
+    "                    locations='State', \n",
+    "                    locationmode=\"USA-states\", \n",
+    "                    scope=\"usa\",\n",
+    "                    color='sentiment_average',\n",
+    "                    color_continuous_scale=\"tealrose\", \n",
+    "                    \n",
+    "                    )\n",
+    "fig.show()"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.9.12"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
