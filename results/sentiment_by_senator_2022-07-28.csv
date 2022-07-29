@@ -1,0 +1,82 @@
+Name,State,Twitter,Party,vader_sentiment_score
+"Baldwin, Tammy",WI,senatorbaldwin,Democrat,0.5113978723404256
+"Bennet, Michael F.",CO,senatorbennet,Democrat,0.6665826086956522
+"Blackburn, Marsha",TN,marshablackburn,Republican,0.23139354838709675
+"Blumenthal, Richard",CT,senblumenthal,Democrat,0.020983999999999992
+"Booker, Cory A.",NJ,corybooker,Democrat,0.07211999999999999
+"Braun, Mike",IN,senatorbraun,Republican,0.1414857142857143
+"Cantwell, Maria",WA,senatorcantwell,Democrat,0.3930121212121212
+"Cardin, Benjamin L.",MD,senatorcardin,Democrat,0.4639333333333333
+"Carper, Thomas R.",DE,senatorcarper,Democrat,0.5984428571428572
+"Cassidy, Bill",LA,senbillcassidy,Republican,-0.11899999999999997
+"Coons, Christopher A.",DE,chriscoons,Democrat,0.24806666666666669
+"Cornyn, John",TX,johncornyn,Republican,0.17770909090909093
+"Cortez Masto, Catherine",NV,sencortezmasto,Democrat,0.5124
+"Cotton, Tom",AR,sentomcotton,Republican,-0.05957499999999999
+"Cramer, Kevin",ND,senkevincramer,Republican,0.5870875
+"Crapo, Mike",ID,mikecrapo,Republican,0.5574
+"Cruz, Ted",TX,sentedcruz,Republican,0.010985714285714269
+"Daines, Steve",MT,stevedaines,Republican,0.11215714285714286
+"Duckworth, Tammy",IL,senduckworth,Democrat,0.12348181818181819
+"Durbin, Richard J.",IL,senatordurbin,Democrat,0.011861904761904761
+"Ernst, Joni",IA,senjoniernst,Republican,0.4620538461538462
+"Feinstein, Dianne",CA,senfeinstein,Democrat,0.33075714285714286
+"Gillibrand, Kirsten E.",NY,sengillibrand,Democrat,0.43131363636363634
+"Graham, Lindsey",SC,lindseygrahamsc,Republican,0.1808833333333333
+"Grassley, Chuck",IA,chuckgrassley,Republican,-0.11315
+"Hagerty, Bill",TN,senatorhagerty,Republican,0.43660000000000004
+"Hassan, Margaret Wood",NH,senatorhassan,Democrat,-0.011492307692307687
+"Hawley, Josh",MO,hawleymo,Republican,0.0916225
+"Heinrich, Martin",NM,martinheinrich,Democrat,0.35413076923076925
+"Hickenlooper, John W.",CO,senatorhick,Democrat,0.4896205128205128
+"Hirono, Mazie K.",HI,maziehirono,Democrat,0.37122800000000006
+"Hoeven, John",ND,senjohnhoeven,Republican,0.6686000000000001
+"Hyde-Smith, Cindy",MS,senhydesmith,Republican,-0.04831111111111111
+"Inhofe, James M.",OK,jiminhofe,Republican,0.30751999999999996
+"Johnson, Ron",WI,senronjohnson,Republican,-0.06516666666666666
+"Kaine, Tim",VA,timkaine,Democrat,0.4616521739130435
+"Kelly, Mark",AZ,senmarkkelly,Democrat,-0.1645
+"Kennedy, John",LA,senjohnkennedy,Republican,-0.1551
+"King, Angus S. Jr.",ME,senangusking,Independent,0.09
+"Klobuchar, Amy",MN,senamyklobuchar,Democrat,0.5742499999999999
+"Lankford, James",OK,senatorlankford,Republican,-0.17953913043478262
+"Leahy, Patrick J.",VT,senatorleahy,Democrat,0.75745
+"Lee, Mike",UT,senmikelee,Republican,0.3202333333333333
+"Luján, Ben Ray",NM,senatorlujan,Democrat,0.192946875
+"Lummis, Cynthia M.",WY,senlummis,Republican,0.872
+"Manchin, Joe",WV,sen_joemanchin,Democrat,0.7506
+"Markey, Edward J.",MA,senmarkey,Democrat,0.236375
+"Menendez, Bob",NJ,senatormenendez,Democrat,0.2674583333333333
+"Merkley, Jeff",OR,senjeffmerkley,Democrat,0.42097222222222225
+"Moran, Jerry",KS,jerrymoran,Republican,-0.60176
+"Murkowski, Lisa",AK,lisamurkowski,Republican,0.8475
+"Murphy, Christopher",CT,chrismurphyct,Democrat,-0.05087499999999999
+"Murray, Patty",WA,pattymurray,Democrat,0.0457952380952381
+"Padilla, Alex",CA,senalexpadilla,Democrat,0.5805642857142858
+"Paul, Rand",KY,randpaul,Republican,0.209575
+"Peters, Gary C.",MI,sengarypeters,Democrat,0.19018888888888888
+"Risch, James E.",ID,senatorrisch,Republican,0.5574
+"Romney, Mitt",UT,senatorromney,Republican,0.21955
+"Rosen, Jacky",NV,senjackyrosen,Democrat,0.4704
+"Rubio, Marco",FL,marcorubio,Republican,0.17227142857142858
+"Sanders, Bernard",VT,sensanders,Independent,0.24035
+"Schumer, Charles E.",NY,senschumer,Democrat,0.15719
+"Scott, Rick",FL,senrickscott,Republican,0.3094666666666667
+"Scott, Tim",SC,senatortimscott,Republican,0.5359
+"Shaheen, Jeanne",NH,senatorshaheen,Democrat,0.4013366666666667
+"Shelby, Richard C.",AL,senshelby,Republican,0.891
+"Sinema, Kyrsten",AZ,senatorsinema,Democrat,0.4939
+"Smith, Tina",MN,sentinasmith,Democrat,0.2286
+"Stabenow, Debbie",MI,senstabenow,Democrat,0.5699870967741936
+"Thune, John",SD,senjohnthune,Republican,0.7351
+"Tillis, Thom",NC,senthomtillis,Republican,-0.6198666666666667
+"Toomey, Patrick J.",PA,sentoomey,Republican,0.6911499999999999
+"Tuberville, Tommy",AL,sentuberville,Republican,0.34996
+"Van Hollen, Chris",MD,chrisvanhollen,Democrat,0.2752774193548387
+"Warner, Mark R.",VA,markwarner,Democrat,0.167288
+"Warnock, Raphael G.",GA,senatorwarnock,Democrat,0.4093857142857143
+"Warren, Elizabeth",MA,senwarren,Democrat,0.3477205128205128
+"Whitehouse, Sheldon",RI,senwhitehouse,Democrat,0.2653259259259259
+"Wicker, Roger F.",MS,senatorwicker,Republican,0.20697142857142858
+"Wyden, Ron",OR,ronwyden,Democrat,0.3088739130434783
+"Young, Todd",IN,sentoddyoung,Republican,0.35464999999999997
